@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Gamepad2, Loader2, LogIn, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { hasSupabaseEnv } from "@/lib/env";
+import { env, hasSupabaseEnv } from "@/lib/env";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
@@ -33,7 +33,10 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         ? await supabase.auth.signUp({
             email,
             password,
-            options: { data: { username } }
+            options: {
+              data: { username },
+              emailRedirectTo: `${env.appUrl}/login`
+            }
           })
         : await supabase.auth.signInWithPassword({ email, password });
 
