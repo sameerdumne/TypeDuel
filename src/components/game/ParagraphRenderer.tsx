@@ -14,15 +14,25 @@ export function ParagraphRenderer({
   typed: string;
 }) {
   const words = useMemo(() => paragraph.split(" "), [paragraph]);
+  const wordStartPositions = useMemo(() => {
+    let position = 0;
+
+    return words.map((word) => {
+      const start = position;
+      position += word.length + 1;
+      return start;
+    });
+  }, [words]);
 
   const currentWordIndex = useMemo(() => {
-    let pos = 0;
     for (let i = 0; i < words.length; i++) {
-      if (pos >= typed.length) return i;
-      pos += words[i].length + 1;
+      const wordEnd = wordStartPositions[i] + words[i].length;
+
+      if (typed.length <= wordEnd) return i;
     }
+
     return words.length;
-  }, [typed, words]);
+  }, [typed, wordStartPositions, words]);
 
   const characters = useMemo(() => compareTypedCharacters(typed, paragraph), [typed, paragraph]);
 
@@ -48,11 +58,7 @@ export function ParagraphRenderer({
 
   const wordStartChar = (wordIdx: number) => {
     const globalWordIdx = startWord + wordIdx;
-    let pos = 0;
-    for (let i = 0; i < globalWordIdx; i++) {
-      pos += words[i].length + 1;
-    }
-    return pos;
+    return wordStartPositions[globalWordIdx] ?? paragraph.length;
   };
 
   return (
