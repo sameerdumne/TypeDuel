@@ -11,11 +11,7 @@ import type {
   TypingUpdatePayload
 } from "../src/types/game";
 import { calculateMmrDelta, xpForResult } from "../src/utils/ranking";
-import {
-  calculateTypingStats,
-  normalizeTypedValue,
-  validateTypingUpdate
-} from "../src/utils/typing";
+import { calculateTypingStats, normalizeTypedValue } from "../src/utils/typing";
 import {
   getPlayerProfile,
   getSupabaseAdmin,
@@ -362,19 +358,6 @@ export class MatchmakingEngine {
     }
 
     const typed = normalizeTypedValue(payload.typed, match.paragraph.body);
-    const validation = validateTypingUpdate({
-      previousTypedLength: playerState.lastTypedLength,
-      nextTypedLength: typed.length,
-      previousUpdateAt: playerState.lastUpdateAt,
-      now,
-      currentFlags: playerState.stats.suspiciousFlags
-    });
-
-    if (!validation.accepted) {
-      playerState.stats.suspiciousFlags = validation.suspiciousFlags;
-      socket.emit("match:error", "Typing update rejected by anti-cheat.");
-      return;
-    }
 
     playerState.typed = typed;
     playerState.lastTypedLength = typed.length;
@@ -384,7 +367,7 @@ export class MatchmakingEngine {
       paragraph: match.paragraph.body,
       startedAt: match.startedAt,
       now,
-      existingFlags: validation.suspiciousFlags
+      existingFlags: playerState.stats.suspiciousFlags
     });
 
     const shouldBroadcast =
