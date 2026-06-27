@@ -100,6 +100,7 @@ export function useSocketBoot() {
     });
     socket.on("self:update", ({ stats }: { stats: TypingStats; matchId: string }) => {
       setSelfStats(stats);
+      setError(undefined);
     });
     socket.on("opponent:update", (payload: OpponentUpdatePayload) => setOpponent(payload));
     socket.on("match:ended", (payload: MatchEndedPayload) => {

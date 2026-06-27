@@ -70,6 +70,7 @@ export const useMatchStore = create<MatchStore>((set) => ({
       selfStats: undefined,
       opponent: undefined,
       summary: undefined,
+      error: undefined,
       started: false,
       countdownMs: match ? Math.max(match.startsAt - match.serverNow, 0) : 0
     }),

@@ -80,15 +80,12 @@ export function MatchArena({ autoJoinCode }: { autoJoinCode?: string }) {
       return selfStats;
     }
 
-    return (
-      selfStats ??
-      calculateTypingStats({
-        typed,
-        paragraph: match.paragraph.body,
-        startedAt: match.startsAt,
-        now: Math.max(Date.now(), match.startsAt)
-      })
-    );
+    return calculateTypingStats({
+      typed,
+      paragraph: match.paragraph.body,
+      startedAt: match.startsAt,
+      now: Math.max(Date.now(), match.startsAt)
+    });
   }, [match, selfStats, typed]);
 
   const pushTyping = (nextTyped: string) => {
