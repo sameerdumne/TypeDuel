@@ -13,14 +13,12 @@ export function StatCard({
   className?: string;
 }) {
   return (
-    <div className={cn("glass-panel rounded-lg p-4", className)}>
+    <div className={cn("glass-panel rounded-lg p-4 border-l-4 border-l-neon-cyan group hover:scale-[1.02] transition-transform", className)}>
       <div className="flex items-center justify-between gap-3">
-        <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
-          {label}
-        </span>
-        <span className="text-cyan-200">{icon}</span>
+        <span className="label-caps text-text-muted">{label}</span>
+        <span className="text-neon-cyan">{icon}</span>
       </div>
-      <div className="mt-3 text-3xl font-black text-white">{value}</div>
+      <div className="stats-value mt-3 text-on-surface group-hover:text-primary-container transition-colors">{value}</div>
     </div>
   );
 }

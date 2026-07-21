@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TYPEDUEL | DOMINATE THE GRID</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        :root {
+            --primary-glow: rgba(0, 218, 243, 0.5);
+            --arena-grid-color: rgba(200, 246, 255, 0.05);
+        }
+
+        body {
+            background-color: #070812;
+            color: #e2e1f0;
+            overflow-x: hidden;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .arena-grid-bg {
+            background-image: 
+                linear-gradient(to right, var(--arena-grid-color) 1px, transparent 1px),
+                linear-gradient(to bottom, var(--arena-grid-color) 1px, transparent 1px);
+            background-size: 44px 44px;
+            mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+        }
+
+        .glass-panel {
+            background: rgba(8, 13, 28, 0.72);
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glow-cyan:hover {
+            box-shadow: 0 0 20px 2px var(--primary-glow);
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.8; box-shadow: 0 0 10px var(--primary-glow); }
+            50% { opacity: 1; box-shadow: 0 0 25px var(--primary-glow); }
+        }
+
+        .animate-pulse-glow {
+            animation: pulseGlow 2s infinite ease-in-out;
+        }
+
+        .reveal-on-scroll {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .reveal-on-scroll.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        #mesh-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            pointer-events: none;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed-variant": "#005236",
+                        "inverse-on-surface": "#2f303b",
+                        "tertiary-fixed": "#6ffbbe",
+                        "glass-fill": "rgba(8, 13, 28, 0.72)",
+                        "on-error": "#690005",
+                        "on-primary-container": "#00636f",
+                        "inverse-primary": "#006875",
+                        "error-red": "#ef4444",
+                        "on-tertiary": "#003824",
+                        "surface-tint": "#00daf3",
+                        "primary-container": "#21e6ff",
+                        "surface-container": "#1e1f2a",
+                        "on-surface-variant": "#bac9cc",
+                        "on-secondary-fixed-variant": "#860070",
+                        "on-tertiary-fixed": "#002113",
+                        "surface-container-highest": "#333440",
+                        "primary-fixed-dim": "#00daf3",
+                        "primary": "#c8f6ff",
+                        "primary-fixed": "#9bf0ff",
+                        "surface": "#11131d",
+                        "surface-dim": "#11131d",
+                        "secondary-fixed": "#ffd8ee",
+                        "text-primary": "#f8fbff",
+                        "on-background": "#e2e1f0",
+                        "surface-container-lowest": "#0c0d18",
+                        "error": "#ffb4ab",
+                        "on-secondary-fixed": "#3a0030",
+                        "on-secondary": "#5f004f",
+                        "surface-container-high": "#282934",
+                        "on-surface": "#e2e1f0",
+                        "tertiary-container": "#5ceaae",
+                        "selection-blue": "rgba(33, 230, 255, 0.35)",
+                        "outline-variant": "#3b494c",
+                        "on-primary-fixed-variant": "#004f58",
+                        "on-primary": "#00363d",
+                        "on-secondary-container": "#ffe0f0",
+                        "secondary": "#ffade3",
+                        "surface-lowest": "#080b14",
+                        "on-primary-fixed": "#001f24",
+                        "background": "#11131d",
+                        "outline": "#859396",
+                        "surface-container-low": "#1a1b26",
+                        "on-error-container": "#ffdad6",
+                        "error-container": "#93000a",
+                        "glass-border": "rgba(255, 255, 255, 0.1)",
+                        "on-tertiary-container": "#006746",
+                        "surface-low": "#10172a",
+                        "secondary-fixed-dim": "#ffade3",
+                        "secondary-container": "#c000a2",
+                        "inverse-surface": "#e2e1f0",
+                        "surface-variant": "#333440",
+                        "tertiary": "#afffd5",
+                        "tertiary-fixed-dim": "#4edea3",
+                        "surface-bright": "#383844"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "grid-unit": "44px",
+                        "stack-md": "1rem",
+                        "stack-sm": "0.5rem",
+                        "stack-lg": "2rem",
+                        "margin-page": "2rem",
+                        "gutter": "1.5rem"
+                    },
+                    "fontFamily": {
+                        "stats-value": ["JetBrains Mono"],
+                        "headline-lg-mobile": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-lg": ["JetBrains Mono"],
+                        "headline-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-caps": ["Inter"]
+                    },
+                    "fontSize": {
+                        "stats-value": ["32px", { "lineHeight": "1", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-lg-mobile": ["32px", { "lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "800" }],
+                        "headline-md": ["24px", { "lineHeight": "1.3", "letterSpacing": "0.025em", "fontWeight": "700" }],
+                        "body-lg": ["20px", { "lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400" }],
+                        "headline-lg": ["48px", { "lineHeight": "1.1", "letterSpacing": "0.05em", "fontWeight": "800" }],
+                        "body-md": ["16px", { "lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400" }],
+                        "label-caps": ["12px", { "lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700" }]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-surface-lowest selection:bg-selection-blue">
+<canvas id="mesh-canvas"></canvas>
+<script>
+(function() {
+  const canvas = document.getElementById('mesh-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H;
+  let mouse = { x: -1000, y: -1000 };
+  let nodes = [];
+  const SPACING = 56;
+  const JITTER = 12;
+  const MOUSE_RADIUS = 250;
+  const NODE_BASE_RADIUS = 1.0;
+  const NODE_ACTIVE_RADIUS = 4.0;
+  const LINE_BASE_ALPHA = 0.07;
+  const LINE_ACTIVE_ALPHA = 0.35;
+  const NODE_BASE_ALPHA = 0.18;
+  const NODE_ACTIVE_ALPHA = 1.0;
+  const CYAN = { r: 0, g: 218, b: 243 };
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    buildGrid();
+  }
+
+  function buildGrid() {
+    nodes = [];
+    const cols = Math.ceil(W / SPACING) + 1;
+    const rows = Math.ceil(H / SPACING) + 1;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        nodes.push({
+          x: c * SPACING + (Math.random() - 0.5) * JITTER,
+          y: r * SPACING + (Math.random() - 0.5) * JITTER,
+          ox: c * SPACING,
+          oy: r * SPACING,
+          phase: Math.random() * Math.PI * 2
+        });
+      }
+    }
+  }
+
+  window.addEventListener('resize', resize);
+  window.addEventListener('mousemove', e => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+  });
+  window.addEventListener('mouseleave', () => {
+    mouse.x = -1000;
+    mouse.y = -1000;
+  });
+
+  function draw(t) {
+    ctx.clearRect(0, 0, W, H);
+    const time = t * 0.001;
+    for (let i = 0; i < nodes.length; i++) {
+      const n = nodes[i];
+      n.x = n.ox + Math.sin(time * 0.3 + n.phase) * 2;
+      n.y = n.oy + Math.cos(time * 0.25 + n.phase * 1.3) * 2;
+    }
+    const cols = Math.ceil(W / SPACING) + 1;
+    for (let i = 0; i < nodes.length; i++) {
+      const n = nodes[i];
+      const dx = n.x - mouse.x;
+      const dy = n.y - mouse.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const influence = Math.max(0, 1 - dist / MOUSE_RADIUS);
+      n._influence = influence;
+    }
+    ctx.lineWidth = 1;
+    for (let i = 0; i < nodes.length; i++) {
+      const n = nodes[i];
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      if (col < cols - 1) {
+        const right = nodes[i + 1];
+        const avgInf = (n._influence + right._influence) * 0.5;
+        const alpha = LINE_BASE_ALPHA + (LINE_ACTIVE_ALPHA - LINE_BASE_ALPHA) * avgInf;
+        ctx.beginPath();
+        ctx.strokeStyle = `rgba(${CYAN.r},${CYAN.g},${CYAN.b},${alpha})`;
+        ctx.moveTo(n.x, n.y);
+        ctx.lineTo(right.x, right.y);
+        ctx.stroke();
+      }
+      if (row < Math.ceil(nodes.length / cols) - 1 && i + cols < nodes.length) {
+        const below = nodes[i + cols];
+        const avgInf = (n._influence + below._influence) * 0.5;
+        const alpha = LINE_BASE_ALPHA + (LINE_ACTIVE_ALPHA - LINE_BASE_ALPHA) * avgInf;
+        ctx.beginPath();
+        ctx.strokeStyle = `rgba(${CYAN.r},${CYAN.g},${CYAN.b},${alpha})`;
+        ctx.moveTo(n.x, n.y);
+        ctx.lineTo(below.x, below.y);
+        ctx.stroke();
+      }
+    }
+    for (let i = 0; i < nodes.length; i++) {
+      const n = nodes[i];
+      const inf = n._influence;
+      const radius = NODE_BASE_RADIUS + (NODE_ACTIVE_RADIUS - NODE_BASE_RADIUS) * inf;
+      const alpha = NODE_BASE_ALPHA + (NODE_ACTIVE_ALPHA - NODE_BASE_ALPHA) * inf;
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, radius, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${CYAN.r},${CYAN.g},${CYAN.b},${alpha})`;
+      ctx.fill();
+      if (inf > 0.3) {
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, radius + 4 * inf, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${CYAN.r},${CYAN.g},${CYAN.b},${inf * 0.15})`;
+        ctx.fill();
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+
+  resize();
+  requestAnimationFrame(draw);
+})();
+</script>
+<!-- TopNavBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-page h-16 bg-glass-fill backdrop-blur-md border-b border-glass-border shadow-24px-80px">
+<div class="flex items-center gap-stack-md">
+<span class="font-headline-md text-headline-md font-extrabold tracking-widest text-surface-tint">TYPEDUEL</span>
+</div>
+<nav class="hidden md:flex gap-gutter items-center">
+<a class="font-label-caps text-label-caps text-primary border-b-2 border-primary-fixed-dim pb-1 transition-all duration-200 active:scale-95" href="#">ARENA</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors transition-all duration-200 active:scale-95" href="#">LEADERBOARD</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors transition-all duration-200 active:scale-95" href="#">TRAINING</a>
+</nav>
+<div class="flex gap-stack-md">
+<button class="hidden lg:block font-label-caps text-label-caps text-on-surface hover:text-primary transition-colors transition-all duration-200 active:scale-95 px-4 py-2">SIGN IN</button>
+<button class="bg-surface-tint text-on-primary font-label-caps text-label-caps px-6 py-2 glow-cyan transition-all duration-200 active:scale-95">BATTLE NOW</button>
+</div>
+</header>
+<main class="relative z-[2]">
+<!-- Hero Section -->
+<section class="relative min-h-screen flex flex-col items-center justify-center pt-16 overflow-hidden">
+<!-- WebGL Shader Background -->
+<!-- STITCH_SHADER_START:ANIMATION_6 class="absolute inset-0 w-full h-full z-0 opacity-40" -->
+<div class="absolute inset-0 w-full h-full z-0 opacity-40" style="display:block;">
+<canvas id="shader-canvas-ANIMATION_6" style="display:block;width:100%;height:100%"></canvas>
+<script>
+(function() {
+  const canvas = document.getElementById('shader-canvas-ANIMATION_6');
+
+  // Sync the WebGL drawing-buffer size with the CSS-driven layout size.
+  // This fires on initial layout and whenever the element is resized.
+  function syncSize() {
+    const w = canvas.clientWidth  || 1280;
+    const h = canvas.clientHeight || 720;
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width  = w;
+      canvas.height = h;
+    }
+  }
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(syncSize).observe(canvas);
+  }
+  syncSize();
+
+  const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+  if (!gl) return;
+  const vs = `attribute vec2 a_position;
+varying vec2 v_texCoord;
+void main() {
+  v_texCoord = a_position * 0.5 + 0.5;
+  gl_Position = vec4(a_position, 0.0, 1.0);
+}`;
+  const fs = `precision highp float;
+uniform float u_time;
+uniform vec2 u_resolution;
+uniform vec2 u_mouse;
+varying vec2 v_texCoord;
+
+float hash(vec2 p) {
+    p = fract(p * vec2(123.34, 456.21));
+    p += dot(p, p + 45.32);
+    return fract(p.x * p.y);
+}
+
+void main() {
+    vec2 uv = v_texCoord;
+    vec2 p = (uv - 0.5) * 2.0;
+    p.x *= u_resolution.x / u_resolution.y;
+
+    // Grid system
+    vec2 grid_uv = uv * 30.0;
+    vec2 g = fract(grid_uv) - 0.5;
+    float dist = length(g);
+    float lines = smoothstep(0.48, 0.5, max(abs(g.x), abs(g.y)));
+    
+    // Perspective distortion for "flying through" effect
+    float z = 1.0 / (uv.y + 0.1);
+    vec2 p_uv = vec2(p.x * z, z + u_time * 0.8);
+    vec2 pg = fract(p_uv * 4.0) - 0.5;
+    float p_lines = smoothstep(0.4, 0.45, max(abs(pg.x), abs(pg.y)));
+    p_lines *= smoothstep(0.0, 0.5, uv.y); // Fade out at horizon
+
+    // Glowing data streams
+    float stream = 0.0;
+    for(float i = 0.0; i < 3.0; i++) {
+        float speed = 0.5 + i * 0.2;
+        float x_pos = fract(hash(vec2(i, 1.0)) + u_time * 0.1) * 2.0 - 1.0;
+        float s = smoothstep(0.02, 0.0, abs(p.x - x_pos));
+        stream += s * (sin(u_time * 5.0 + uv.y * 10.0) * 0.5 + 0.5);
+    }
+
+    // Color Palette from Design System
+    vec3 bg = vec3(0.066, 0.075, 0.114); // #11131d
+    vec3 cyan = vec3(0.129, 0.902, 1.0);  // #21e6ff
+    vec3 magenta = vec3(1.0, 0.31, 0.847); // #ff4fd8
+
+    vec3 color = bg;
+    color += cyan * lines * 0.1 * smoothstep(0.2, 0.8, uv.y);
+    color += cyan * p_lines * 0.3;
+    color += magenta * stream * 0.4;
+    
+    // Vignette
+    color *= 1.0 - length(uv - 0.5) * 0.5;
+    
+    // Mouse Interaction
+    float m_dist = length(uv - (u_mouse / u_resolution));
+    color += cyan * smoothstep(0.25, 0.0, m_dist) * 0.15;
+
+    gl_FragColor = vec4(color, 1.0);
+}`;
+  function cs(type, src) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    return s;
+  }
+  const prog = gl.createProgram();
+  gl.attachShader(prog, cs(gl.VERTEX_SHADER, vs));
+  gl.attachShader(prog, cs(gl.FRAGMENT_SHADER, fs));
+  gl.linkProgram(prog);
+  gl.useProgram(prog);
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+  const pos = gl.getAttribLocation(prog, 'a_position');
+  gl.enableVertexAttribArray(pos);
+  gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0);
+  const uTime = gl.getUniformLocation(prog, 'u_time');
+  const uRes = gl.getUniformLocation(prog, 'u_resolution');
+  const uMouse = gl.getUniformLocation(prog, 'u_mouse');
+
+  // u_mouse is in pixel coordinates matching u_resolution (ShaderToy convention).
+  // Shaders that need normalized coords should use: u_mouse / u_resolution.
+  let mouse = { x: canvas.width / 2, y: canvas.height / 2 };
+  window.addEventListener('mousemove', (event) => {
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width && rect.height) {
+      const nx = (event.clientX - rect.left) / rect.width;
+      const ny = 1.0 - (event.clientY - rect.top) / rect.height;
+      mouse.x = nx * canvas.width;
+      mouse.y = ny * canvas.height;
+    }
+  });
+
+  function render(t) {
+    if (typeof ResizeObserver === 'undefined') syncSize();
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    if (uTime) gl.uniform1f(uTime, t * 0.001);
+    if (uRes) gl.uniform2f(uRes, canvas.width, canvas.height);
+    if (uMouse) gl.uniform2f(uMouse, mouse.x, mouse.y);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    requestAnimationFrame(render);
+  }
+  render(0);
+})();
+</script>
+</div>
+<!-- STITCH_SHADER_END:ANIMATION_6 -->
+<!-- Arena Grid Texture -->
+<div class="absolute inset-0 arena-grid-bg z-1 opacity-20 pointer-events-none"></div>
+<div class="container mx-auto px-margin-page relative z-10 flex flex-col items-center text-center">
+<div class="mb-stack-lg reveal-on-scroll">
+<h1 class="font-headline-lg text-headline-lg italic uppercase tracking-tighter text-white leading-none">
+                        DOMINATE <span class="text-surface-tint">THE GRID</span>
+</h1>
+<p class="mt-stack-md max-w-2xl mx-auto font-body-lg text-body-lg text-on-surface-variant opacity-80">
+                        High-octane 1v1 typing battles for the digital elite. No fluff, just pure speed.
+                    </p>
+</div>
+<div class="flex flex-col sm:flex-row gap-gutter reveal-on-scroll" style="transition-delay: 200ms;">
+<button class="bg-surface-tint text-on-primary font-label-caps text-label-caps px-10 py-4 text-lg glow-cyan animate-pulse-glow transition-all duration-200 active:scale-95">
+                        BATTLE NOW
+                    </button>
+<button class="border border-surface-tint/50 text-surface-tint font-label-caps text-label-caps px-10 py-4 text-lg glass-panel hover:bg-surface-tint/10 transition-all duration-200 active:scale-95">
+                        VIEW LEADERBOARDS
+                    </button>
+</div>
+<!-- Floating Stats -->
+<div class="mt-stack-lg flex flex-wrap justify-center gap-gutter reveal-on-scroll" style="transition-delay: 400ms;">
+<div class="glass-panel px-6 py-4 flex flex-col items-center min-w-[180px]">
+<span class="font-stats-value text-stats-value text-surface-tint">1,204</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-[0.2em]">DUELISTS ONLINE</span>
+</div>
+<div class="glass-panel px-6 py-4 flex flex-col items-center min-w-[180px]">
+<span class="font-stats-value text-stats-value text-tertiary-fixed-dim">428</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-[0.2em]">ACTIVE MATCHES</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Features Section -->
+<section class="py-stack-lg bg-surface relative">
+<div class="container mx-auto px-margin-page">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Feature 1 -->
+<div class="glass-panel p-stack-lg group hover:border-surface-tint/50 transition-all duration-500 reveal-on-scroll">
+<div class="w-12 h-12 mb-stack-md flex items-center justify-center rounded-lg bg-surface-tint/10 text-surface-tint">
+<span class="material-symbols-outlined text-3xl">swords</span>
+</div>
+<h3 class="font-headline-md text-headline-md mb-stack-sm text-white">REAL-TIME DUELS</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Zero-latency WebSocket architecture ensures every keystroke counts. Battle opponents globally in millisecond-precise encounters.</p>
+</div>
+<!-- Feature 2 -->
+<div class="glass-panel p-stack-lg group hover:border-surface-tint/50 transition-all duration-500 reveal-on-scroll" style="transition-delay: 150ms;">
+<div class="w-12 h-12 mb-stack-md flex items-center justify-center rounded-lg bg-tertiary-fixed-dim/10 text-tertiary-fixed-dim">
+<span class="material-symbols-outlined text-3xl">trophy</span>
+</div>
+<h3 class="font-headline-md text-headline-md mb-stack-sm text-white">RANKED LADDER</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Climb from Bronze to Grandmaster. Our Elo-based matchmaking puts you against warriors of equal speed and precision.</p>
+</div>
+<!-- Feature 3 -->
+<div class="glass-panel p-stack-lg group hover:border-surface-tint/50 transition-all duration-500 reveal-on-scroll" style="transition-delay: 300ms;">
+<div class="w-12 h-12 mb-stack-md flex items-center justify-center rounded-lg bg-error-red/10 text-error-red">
+<span class="material-symbols-outlined text-3xl">shield</span>
+</div>
+<h3 class="font-headline-md text-headline-md mb-stack-sm text-white">ANTI-CHEAT</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Server-authoritative validation and heuristic analysis keep the arena clean. Only human speed is tolerated here.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Arena Preview -->
+<section class="py-stack-lg bg-surface-container-lowest overflow-hidden">
+<div class="container mx-auto px-margin-page text-center">
+<h2 class="font-headline-lg text-headline-lg text-white mb-stack-lg reveal-on-scroll">THE ARENA AWAITS</h2>
+<div class="relative mx-auto max-w-5xl reveal-on-scroll" style="transition-delay: 200ms;">
+<!-- Browser Mockup -->
+<div class="glass-panel rounded-xl overflow-hidden shadow-24px-80px border-white/20">
+<div class="bg-surface-container-highest px-4 py-3 flex items-center gap-2 border-b border-glass-border">
+<div class="flex gap-1.5">
+<div class="w-3 h-3 rounded-full bg-error-red/50"></div>
+<div class="w-3 h-3 rounded-full bg-tertiary-fixed-dim/50"></div>
+<div class="w-3 h-3 rounded-full bg-surface-tint/50"></div>
+</div>
+<div class="mx-auto bg-surface-container px-6 py-1 rounded text-[10px] text-on-surface-variant font-mono">typeduel.arena/match/active</div>
+</div>
+<div class="p-8 md:p-12 bg-surface text-left relative min-h-[400px] flex flex-col justify-center">
+<!-- Preview Content Inspired by Match Arena -->
+<div class="flex justify-between items-end mb-12">
+<div class="flex gap-4 items-center">
+<div class="w-12 h-12 rounded bg-surface-tint flex items-center justify-center font-bold text-black">YOU</div>
+<div>
+<div class="text-xs font-label-caps text-surface-tint">WPM</div>
+<div class="text-2xl font-stats-value">142</div>
+</div>
+</div>
+<div class="text-center font-stats-value text-4xl text-white/20 tracking-widest">VERSUS</div>
+<div class="flex gap-4 items-center flex-row-reverse text-right">
+<div class="w-12 h-12 rounded bg-error-red flex items-center justify-center font-bold text-black">CPU</div>
+<div>
+<div class="text-xs font-label-caps text-error-red">WPM</div>
+<div class="text-2xl font-stats-value">138</div>
+</div>
+</div>
+</div>
+<div class="font-body-lg text-3xl leading-relaxed text-white/30 tracking-tight">
+<span class="text-surface-tint border-r-2 border-surface-tint animate-pulse">Efficiency</span> is doing things right; effectiveness is doing the right things. The goal of TypeDuel is to push the boundaries of human-computer interaction through...
+                             </div>
+<!-- Visual Decorations -->
+<div class="absolute bottom-4 right-4 flex gap-2">
+<div class="px-3 py-1 rounded-full bg-surface-container-high text-[10px] font-mono text-on-surface-variant">ACC: 99.4%</div>
+<div class="px-3 py-1 rounded-full bg-surface-container-high text-[10px] font-mono text-on-surface-variant">POS: #1</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Social Proof / Mini Leaderboard -->
+<section class="py-stack-lg bg-surface relative">
+<div class="absolute inset-0 arena-grid-bg z-0 opacity-10 pointer-events-none"></div>
+<div class="container mx-auto px-margin-page relative z-10">
+<div class="max-w-3xl mx-auto">
+<div class="text-center mb-stack-lg">
+<h2 class="font-headline-md text-headline-md text-white mb-stack-sm">SEASON ELITE</h2>
+<p class="font-label-caps text-label-caps text-on-surface-variant">TOP DUELISTS THIS HOUR</p>
+</div>
+<div class="flex flex-col gap-4">
+<!-- Rank 1 -->
+<div class="glass-panel p-4 flex items-center justify-between border-l-4 border-surface-tint reveal-on-scroll">
+<div class="flex items-center gap-6">
+<span class="font-stats-value text-2xl text-surface-tint w-8">01</span>
+<div class="w-10 h-10 rounded-full overflow-hidden bg-surface-container-highest">
+<img class="object-cover w-full h-full" data-alt="A futuristic cyberpunk avatar of a pro-gamer, featuring neon hair accents and cybernetic eye enhancements, set against a dark tech background with cyan and magenta lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBNYBbBEjIUo5G1Kgg-jBeosFZcObdBBvdHPHA3HVr1ZiZlpalz6Ze0Ep-j-vzVMWnWe3WX2NbVqr162juK235saALS7So6bu1iue2PeuZDAoawWZ3R7GCvc1wkl9DQ8siVR-5u5XsIjz_RPCyV7YJFIRSz3P03BrCj1xkWqF4rs-ln0Tt9sQ3mlhR0wd0c25iOrMbzCNneBaIYeOMNN0KBecqZpdYwZxovGlza7YGewx0GI7UwXM8W6ULjM9_baJStxj0ispUvnBo"/>
+</div>
+<span class="font-headline-md text-lg text-white">XENO_CORE</span>
+</div>
+<div class="text-right">
+<span class="block font-stats-value text-xl text-surface-tint">168</span>
+<span class="block font-label-caps text-[10px] text-on-surface-variant">AVG WPM</span>
+</div>
+</div>
+<!-- Rank 2 -->
+<div class="glass-panel p-4 flex items-center justify-between border-l-4 border-outline reveal-on-scroll" style="transition-delay: 100ms;">
+<div class="flex items-center gap-6">
+<span class="font-stats-value text-2xl text-on-surface-variant w-8">02</span>
+<div class="w-10 h-10 rounded-full overflow-hidden bg-surface-container-highest">
+<img class="object-cover w-full h-full" data-alt="A highly detailed close-up of a digital human with tactical face paint and glowing neural link ports on their neck, styled in a high-contrast dark aesthetic with atmospheric cyan fog." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCwrdAgZwp3Wc9jCrPo0Auyic-nUB23GnkEgiZFcJZZzOlXGDodaVB5UMsdYNq_S-VYnv8KujipkOLGejQg4Mk2J1E_saBQFStcvqkksKakcvpk9vr8Dl7YhOQPgu3tFgqMILKTD4Q6SxgDZUnRSuAeMg4VwBBvk2W_SmNFJIL3m50QYHzqGHTjU24_pwXT6MP9MXMbAmDO-6jIBR8GkGuNOA8-gtpwDwdWJqXuII0NiBoEzSS8MBIZvm5lU8wlt3HFjWTr9WCK2k4"/>
+</div>
+<span class="font-headline-md text-lg text-white">SYNTH_WAVE</span>
+</div>
+<div class="text-right">
+<span class="block font-stats-value text-xl text-white">154</span>
+<span class="block font-label-caps text-[10px] text-on-surface-variant">AVG WPM</span>
+</div>
+</div>
+<!-- Rank 3 -->
+<div class="glass-panel p-4 flex items-center justify-between border-l-4 border-on-secondary-fixed-variant reveal-on-scroll" style="transition-delay: 200ms;">
+<div class="flex items-center gap-6">
+<span class="font-stats-value text-2xl text-on-surface-variant w-8">03</span>
+<div class="w-10 h-10 rounded-full overflow-hidden bg-surface-container-highest">
+<img class="object-cover w-full h-full" data-alt="An edgy digital portrait of a competition-ready typist wearing high-tech headphones and a visor that reflects scrolling green code, in a sharp cinematic lighting style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB27RPgvGy_43Y5GW8o5BFb32rR4bxqWfoioXfoI5bUooDc9PO9sR77vDIxqforcKKkuClXiBpqpWLqTsZ_Bq2EdQFvW4p2bRhd3NF28_6TjgZd-YBXaiDf3TItKhZY6-2AKR6JlwkhtNesB39V2ziUBNFoFJNAzxlbA_lvAUjA5G55HdlMcHDY-Aep4qKo_M7mlqN1m-l_56ddpPpNrvcmjNnHCei1Us_KFfZfkEvVyKnAhhYcsn_0-JICvlVbRe5vewKxHv4bV4w"/>
+</div>
+<span class="font-headline-md text-lg text-white">PROTOCOL_ZERO</span>
+</div>
+<div class="text-right">
+<span class="block font-stats-value text-xl text-white">149</span>
+<span class="block font-label-caps text-[10px] text-on-surface-variant">AVG WPM</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-stack-lg px-margin-page flex flex-col md:flex-row justify-between items-center gap-stack-md bg-surface-lowest border-t border-glass-border relative z-[2]">
+<div class="flex flex-col items-center md:items-start gap-2">
+<span class="font-stats-value text-stats-value text-primary-fixed-dim">TYPEDUEL</span>
+<p class="font-label-caps text-[10px] text-outline">© 2024 TYPEDUEL ARENA. ALL SYSTEMS OPERATIONAL.</p>
+</div>
+<div class="flex gap-gutter">
+<a class="font-label-caps text-label-caps text-outline hover:text-tertiary transition-colors" href="#">DISCORD</a>
+<a class="font-label-caps text-label-caps text-outline hover:text-tertiary transition-colors" href="#">API DOCS</a>
+<a class="font-label-caps text-label-caps text-outline hover:text-tertiary transition-colors" href="#">PRIVACY</a>
+<a class="font-label-caps text-label-caps text-outline hover:text-tertiary transition-colors" href="#">TERMS</a>
+</div>
+</footer>
+<script>
+        // Reveal on scroll logic
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.reveal-on-scroll').forEach(el => observer.observe(el));
+
+        // Micro-interaction for buttons
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('mousedown', () => btn.classList.add('scale-95'));
+            btn.addEventListener('mouseup', () => btn.classList.remove('scale-95'));
+            btn.addEventListener('mouseleave', () => btn.classList.remove('scale-95'));
+        });
+    </script>
+</body></html>

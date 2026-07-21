@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TypeDuel | Authenticate</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.8; box-shadow: 0 0 20px rgba(0, 218, 243, 0.4); }
+            50% { opacity: 1; box-shadow: 0 0 35px rgba(0, 218, 243, 0.8); }
+        }
+        .glow-active { animation: pulseGlow 2s infinite; }
+        
+        .arena-grid {
+            background-size: 44px 44px;
+            background-image: linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+        }
+
+        .glass-panel {
+            background: rgba(8, 13, 28, 0.72);
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            background-color: #070812;
+            color: #e2e1f0;
+            overflow-x: hidden;
+        }
+
+        .atmospheric-glow {
+            position: fixed;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            background: radial-gradient(circle at 0% 0%, rgba(0, 218, 243, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 100% 100%, rgba(255, 0, 162, 0.1) 0%, transparent 50%);
+            z-index: -1;
+        }
+
+        #mesh-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            pointer-events: none;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-background": "#e2e1f0",
+                      "on-error-container": "#ffdad6",
+                      "tertiary": "#afffd5",
+                      "tertiary-fixed-dim": "#4edea3",
+                      "on-primary-container": "#00636f",
+                      "tertiary-fixed": "#6ffbbe",
+                      "outline": "#859396",
+                      "on-surface": "#e2e1f0",
+                      "on-primary-fixed": "#001f24",
+                      "error-container": "#93000a",
+                      "glass-fill": "rgba(8, 13, 28, 0.72)",
+                      "primary-fixed-dim": "#00daf3",
+                      "on-error": "#690005",
+                      "on-tertiary-container": "#006746",
+                      "surface-variant": "#333440",
+                      "surface": "#11131d",
+                      "primary-container": "#21e6ff",
+                      "primary": "#c8f6ff",
+                      "surface-container": "#1e1f2a",
+                      "tertiary-container": "#5ceaae",
+                      "background": "#11131d",
+                      "on-primary-fixed-variant": "#004f58",
+                      "on-tertiary-fixed-variant": "#005236",
+                      "on-secondary": "#5f004f",
+                      "error": "#ffb4ab",
+                      "surface-tint": "#00daf3",
+                      "on-secondary-fixed-variant": "#860070",
+                      "surface-dim": "#11131d",
+                      "surface-container-low": "#1a1b26",
+                      "outline-variant": "#3b494c",
+                      "inverse-on-surface": "#2f303b",
+                      "secondary-fixed-dim": "#ffade3",
+                      "surface-container-lowest": "#0c0d18",
+                      "secondary-container": "#c000a2",
+                      "secondary-fixed": "#ffd8ee",
+                      "on-primary": "#00363d",
+                      "error-red": "#ef4444",
+                      "on-tertiary": "#003824",
+                      "glass-border": "rgba(255, 255, 255, 0.1)",
+                      "secondary": "#ffade3",
+                      "surface-bright": "#383844",
+                      "on-secondary-container": "#ffe0f0",
+                      "surface-lowest": "#080b14",
+                      "selection-blue": "rgba(33, 230, 255, 0.35)",
+                      "inverse-primary": "#006875",
+                      "text-primary": "#f8fbff",
+                      "primary-fixed": "#9bf0ff",
+                      "surface-container-highest": "#333440",
+                      "on-secondary-fixed": "#3a0030",
+                      "inverse-surface": "#e2e1f0",
+                      "on-tertiary-fixed": "#002113",
+                      "surface-container-high": "#282934",
+                      "surface-low": "#10172a",
+                      "on-surface-variant": "#bac9cc"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "gutter": "1.5rem",
+                      "grid-unit": "44px",
+                      "stack-lg": "2rem",
+                      "stack-md": "1rem",
+                      "margin-page": "2rem",
+                      "stack-sm": "0.5rem"
+              },
+              "fontFamily": {
+                      "label-caps": ["Inter"],
+                      "body-lg": ["jetbrainsMono"],
+                      "headline-lg-mobile": ["Inter"],
+                      "headline-md": ["Inter"],
+                      "body-md": ["Inter"],
+                      "stats-value": ["jetbrainsMono"],
+                      "headline-lg": ["Inter"]
+              },
+              "fontSize": {
+                      "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                      "body-lg": ["20px", {"lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400"}],
+                      "headline-lg-mobile": ["32px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "800"}],
+                      "headline-md": ["24px", {"lineHeight": "1.3", "letterSpacing": "0.025em", "fontWeight": "700"}],
+                      "body-md": ["16px", {"lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400"}],
+                      "stats-value": ["32px", {"lineHeight": "1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "headline-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "0.05em", "fontWeight": "800"}]
+              }
+            },
+          },
+        }
+    </script>
+</head>
+<body class="flex flex-col min-h-screen arena-grid">
+<canvas id="mesh-canvas"></canvas>
+<div class="atmospheric-glow"></div>
+<script>
+(function() {
+  const canvas = document.getElementById('mesh-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H;
+  let mouse = { x: -1000, y: -1000 };
+  let nodes = [];
+  const SPACING = 56;
+  const JITTER = 12;
+  const MOUSE_RADIUS = 250;
+  const NODE_BASE_RADIUS = 1.0;
+  const NODE_ACTIVE_RADIUS = 4.0;
+  const LINE_BASE_ALPHA = 0.07;
+  const LINE_ACTIVE_ALPHA = 0.35;
+  const NODE_BASE_ALPHA = 0.18;
+  const NODE_ACTIVE_ALPHA = 1.0;
+  const CYAN = { r: 0, g: 218, b: 243 };
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    buildGrid();
+  }
+
+  function buildGrid() {
+    nodes = [];
+    const cols = Math.ceil(W / SPACING) + 1;
+    const rows = Math.ceil(H / SPACING) + 1;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        nodes.push({
+          x: c * SPACING + (Math.random() - 0.5) * JITTER,
+          y: r * SPACING + (Math.random() - 0.5) * JITTER,
+          ox: c * SPACING,
+          oy: r * SPACING,
+          phase: Math.random() * Math.PI * 2
+        });
+      }
+    }
+  }
+
+  window.addEventListener('resize', resize);
+  window.addEventListener('mousemove', e => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+  });
+  window.addEventListener('mouseleave', () => {
+    mouse.x = -1000;
+    mouse.y = -1000;
+  });
+
+  function draw(t) {
+    ctx.clearRect(0, 0, W, H);
+    const time = t * 0.001;
+    for (let i = 0; i < nodes.length; i++) {
+      const n = nodes[i];
+      n.x = n.ox + Math.sin(time * 0.3 + n.phase) * 2;
+      n.y = n.oy + Math.cos(time * 0.25 + n.phase * 1.3) * 2;
+    }
+    const cols = Math.ceil(W / SPACING) + 1;
+    for (let i = 0; i < nodes.length; i++) {
+      const n = nodes[i];
+      const dx = n.x - mouse.x;
+      const dy = n.y - mouse.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const influence = Math.max(0, 1 - dist / MOUSE_RADIUS);
+      n._influence = influence;
+    }
+    ctx.lineWidth = 1;
+    for (let i = 0; i < nodes.length; i++) {
+      const n = nodes[i];
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      if (col < cols - 1) {
+        const right = nodes[i + 1];
+        const avgInf = (n._influence + right._influence) * 0.5;
+        const alpha = LINE_BASE_ALPHA + (LINE_ACTIVE_ALPHA - LINE_BASE_ALPHA) * avgInf;
+        ctx.beginPath();
+        ctx.strokeStyle = `rgba(${CYAN.r},${CYAN.g},${CYAN.b},${alpha})`;
+        ctx.moveTo(n.x, n.y);
+        ctx.lineTo(right.x, right.y);
+        ctx.stroke();
+      }
+      if (row < Math.ceil(nodes.length / cols) - 1 && i + cols < nodes.length) {
+        const below = nodes[i + cols];
+        const avgInf = (n._influence + below._influence) * 0.5;
+        const alpha = LINE_BASE_ALPHA + (LINE_ACTIVE_ALPHA - LINE_BASE_ALPHA) * avgInf;
+        ctx.beginPath();
+        ctx.strokeStyle = `rgba(${CYAN.r},${CYAN.g},${CYAN.b},${alpha})`;
+        ctx.moveTo(n.x, n.y);
+        ctx.lineTo(below.x, below.y);
+        ctx.stroke();
+      }
+    }
+    for (let i = 0; i < nodes.length; i++) {
+      const n = nodes[i];
+      const inf = n._influence;
+      const radius = NODE_BASE_RADIUS + (NODE_ACTIVE_RADIUS - NODE_BASE_RADIUS) * inf;
+      const alpha = NODE_BASE_ALPHA + (NODE_ACTIVE_ALPHA - NODE_BASE_ALPHA) * inf;
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, radius, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${CYAN.r},${CYAN.g},${CYAN.b},${alpha})`;
+      ctx.fill();
+      if (inf > 0.3) {
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, radius + 4 * inf, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${CYAN.r},${CYAN.g},${CYAN.b},${inf * 0.15})`;
+        ctx.fill();
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+
+  resize();
+  requestAnimationFrame(draw);
+})();
+</script>
+<!-- TopNavBar -->
+<header class="sticky top-0 w-full z-50 bg-glass-fill backdrop-blur-xl border-b border-glass-border shadow-[0_24px_80px_rgba(0,0,0,0.5)]">
+<nav class="flex justify-between items-center px-gutter py-4 max-w-7xl mx-auto">
+<div class="font-headline-md text-headline-md font-black italic text-primary-fixed tracking-tighter">
+                TypeDuel
+            </div>
+<div class="hidden md:flex items-center gap-stack-lg font-body-md text-body-md">
+<a class="text-on-surface-variant hover:text-primary-fixed transition-colors duration-200" href="#">Arena</a>
+<a class="text-on-surface-variant hover:text-primary-fixed transition-colors duration-200" href="#">Leaderboard</a>
+<a class="text-on-surface-variant hover:text-primary-fixed transition-colors duration-200" href="#">Training</a>
+</div>
+<div class="flex items-center gap-stack-md">
+<button class="hidden md:block font-label-caps text-label-caps text-on-surface-variant hover:text-secondary-fixed transition-all px-4 py-2">Login</button>
+<button class="bg-primary-fixed-dim text-on-primary font-label-caps text-label-caps px-6 py-2.5 rounded-lg active:scale-95 transition-transform glow-active">
+                    Battle Now
+                </button>
+</div>
+</nav>
+</header>
+<!-- Main Auth Content -->
+<main class="flex-grow flex items-center justify-center py-stack-lg px-gutter relative z-[2]">
+<div class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 glass-panel rounded-xl overflow-hidden min-h-[700px] shadow-2xl">
+<!-- Visual Side (Desktop only or top on mobile) -->
+<div class="relative overflow-hidden hidden lg:block border-r border-glass-border">
+<!-- ThreeJS or WebGL Placeholder for Background -->
+
+<div class="absolute inset-0 flex flex-col justify-center items-center p-stack-lg z-10 bg-gradient-to-t from-[#070812] to-transparent">
+<div class="w-full text-center">
+<span class="material-symbols-outlined text-primary-fixed-dim text-6xl mb-stack-md" style="font-variation-settings: 'FILL' 1;">keyboard</span>
+<h2 class="font-headline-lg text-headline-lg text-primary uppercase tracking-widest mb-stack-sm">The Arena Awaits</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-md mx-auto">
+                            Hone your accuracy. Dominate the leaderboard. 
+                            The fastest fingers in the digital world are gathering.
+                        </p>
+</div>
+<!-- Stats Preview Card -->
+<div class="mt-stack-lg glass-panel p-stack-md rounded-lg w-full max-w-sm border-l-4 border-primary-fixed-dim">
+<p class="font-label-caps text-label-caps text-primary-fixed-dim mb-stack-sm">GLOBAL CHAMPION SPEED</p>
+<div class="flex justify-between items-end">
+<div>
+<span class="font-stats-value text-stats-value text-on-surface">192</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant ml-1">WPM</span>
+</div>
+<div class="text-right">
+<span class="font-stats-value text-stats-value text-tertiary-fixed-dim">99.8</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant ml-1">%</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Abstract Decorative Image -->
+<div class="absolute bottom-0 left-0 w-full h-1/2 opacity-40 mix-blend-screen" data-alt="A cinematic 3D render of two cybernetic katanas crossing in a neon-drenched futuristic arena. The lighting is dominated by electric cyan and deep magenta lasers cutting through a misty, dark environment. The swords have glowing energy edges and are surrounded by digital particles and floating code fragments in a high-octane competitive gaming style." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCH1XM3nPOqB9mcFGu_ON94BWt1PlJlOGwrAR_o3S8hI4oYzZIMoKAcIYFiVH48mC9NL3SS3WgLCbVsb4BIzPTkaDQNs9Khh03QuQDQMygOPo534f-Aw3tObgtI6j8WhxnkPbf6mFEAXincjYdAsQQPISQGCYwCpYrPRLIZrfWCfW6ycCxn9c7Vf4ZWnBaQdxaMxIveIRCiCzRzsj7nXlhN0v8G59nZV520KiExaa1JGyGUNMWAyTBLqe4vkC66krNz4kcsuct41Bo')"></div>
+</div>
+<!-- Form Side -->
+<div class="flex flex-col p-8 md:p-12 lg:p-16 justify-center bg-surface-lowest/50">
+<div class="w-full max-w-md mx-auto">
+<!-- Toggle Switch -->
+<div class="flex p-1 bg-surface-container rounded-full mb-10 relative">
+<div class="absolute h-10 w-1/2 bg-surface-bright rounded-full transition-all duration-300 left-1 shadow-inner border border-glass-border" id="toggle-bg"></div>
+<button class="relative z-10 flex-1 py-2 text-center font-label-caps text-label-caps text-on-surface transition-colors" id="login-btn" onclick="toggleAuth(true)">Login</button>
+<button class="relative z-10 flex-1 py-2 text-center font-label-caps text-label-caps text-on-surface-variant transition-colors" id="signup-btn" onclick="toggleAuth(false)">Create Account</button>
+</div>
+<div class="mb-8">
+<h1 class="font-headline-md text-headline-md text-on-surface mb-2" id="auth-title">Welcome Back, Duelist</h1>
+<p class="font-body-md text-body-md text-on-surface-variant" id="auth-subtitle">Enter your credentials to enter the arena.</p>
+</div>
+<form class="space-y-stack-md" onsubmit="event.preventDefault();">
+<!-- Email -->
+<div>
+<label class="block font-label-caps text-label-caps text-outline-variant mb-2 uppercase">Interface Identifier (Email)</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">alternate_email</span>
+<input class="w-full bg-surface-container border border-outline-variant rounded-lg py-3.5 pl-12 pr-4 text-on-surface font-body-md focus:border-primary-fixed-dim focus:ring-1 focus:ring-primary-fixed-dim transition-all outline-none" placeholder="duelist@typeduel.com" type="email"/>
+</div>
+</div>
+<!-- Password -->
+<div>
+<div class="flex justify-between items-center mb-2">
+<label class="block font-label-caps text-label-caps text-outline-variant uppercase">Encryption Key (Password)</label>
+<a class="font-label-caps text-label-caps text-primary-fixed-dim hover:text-primary transition-colors" href="#">Lost Access?</a>
+</div>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">lock</span>
+<input class="w-full bg-surface-container border border-outline-variant rounded-lg py-3.5 pl-12 pr-4 text-on-surface font-body-md focus:border-primary-fixed-dim focus:ring-1 focus:ring-primary-fixed-dim transition-all outline-none" placeholder="••••••••" type="password"/>
+</div>
+</div>
+<!-- Sign Up Only: Confirm Password (Hidden by default) -->
+<div class="hidden opacity-0 transform translate-y-2 transition-all duration-300" id="confirm-password-container">
+<label class="block font-label-caps text-label-caps text-outline-variant mb-2 uppercase">Verify Key</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">security</span>
+<input class="w-full bg-surface-container border border-outline-variant rounded-lg py-3.5 pl-12 pr-4 text-on-surface font-body-md focus:border-primary-fixed-dim focus:ring-1 focus:ring-primary-fixed-dim transition-all outline-none" placeholder="••••••••" type="password"/>
+</div>
+</div>
+<button class="w-full bg-primary-fixed-dim text-on-primary font-label-caps text-label-caps py-4 rounded-lg mt-stack-md transition-all active:scale-[0.98] hover:shadow-[0_0_20px_rgba(0,218,243,0.3)] glow-active uppercase tracking-widest">
+<span id="submit-text">Initiate Connection</span>
+</button>
+</form>
+<div class="mt-stack-lg">
+<div class="relative flex items-center mb-stack-lg">
+<div class="flex-grow border-t border-outline-variant/30"></div>
+<span class="flex-shrink mx-4 font-label-caps text-[10px] text-outline-variant">OR CONNECT VIA</span>
+<div class="flex-grow border-t border-outline-variant/30"></div>
+</div>
+<div class="grid grid-cols-2 gap-stack-md">
+<button class="flex items-center justify-center gap-2 bg-surface-container hover:bg-surface-bright border border-outline-variant rounded-lg py-3 transition-colors">
+<span class="material-symbols-outlined text-on-surface">hub</span>
+<span class="font-label-caps text-label-caps text-on-surface">DISCORD</span>
+</button>
+<button class="flex items-center justify-center gap-2 bg-surface-container hover:bg-surface-bright border border-outline-variant rounded-lg py-3 transition-colors">
+<span class="material-symbols-outlined text-on-surface">google</span>
+<span class="font-label-caps text-label-caps text-on-surface">GOOGLE</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-stack-lg bg-surface-lowest border-t border-outline-variant relative z-[2]">
+<div class="flex flex-col md:flex-row justify-between items-center px-margin-page gap-stack-md max-w-7xl mx-auto">
+<div class="font-headline-md text-headline-md text-on-surface font-black italic tracking-tighter">
+                TYPEDUEL
+            </div>
+<div class="flex flex-wrap justify-center gap-stack-md">
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-secondary-fixed transition-all opacity-80 hover:opacity-100" href="#">Terms of Service</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-secondary-fixed transition-all opacity-80 hover:opacity-100" href="#">Privacy Policy</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-secondary-fixed transition-all opacity-80 hover:opacity-100" href="#">Discord</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-secondary-fixed transition-all opacity-80 hover:opacity-100" href="#">Support</a>
+</div>
+<div class="font-label-caps text-label-caps text-tertiary-fixed-dim">
+                © 2024 TYPEDUEL ARENA. ALL RIGHTS RESERVED.
+            </div>
+</div>
+</footer>
+<script>
+        function toggleAuth(isLogin) {
+            const toggleBg = document.getElementById('toggle-bg');
+            const loginBtn = document.getElementById('login-btn');
+            const signupBtn = document.getElementById('signup-btn');
+            const title = document.getElementById('auth-title');
+            const subtitle = document.getElementById('auth-subtitle');
+            const submitText = document.getElementById('submit-text');
+            const confirmPassword = document.getElementById('confirm-password-container');
+
+            if (isLogin) {
+                toggleBg.style.left = '4px';
+                loginBtn.classList.add('text-on-surface');
+                loginBtn.classList.remove('text-on-surface-variant');
+                signupBtn.classList.add('text-on-surface-variant');
+                signupBtn.classList.remove('text-on-surface');
+                
+                title.innerText = "Welcome Back, Duelist";
+                subtitle.innerText = "Enter your credentials to enter the arena.";
+                submitText.innerText = "Initiate Connection";
+                
+                confirmPassword.classList.add('hidden', 'opacity-0', 'translate-y-2');
+            } else {
+                toggleBg.style.left = 'calc(50% - 4px)';
+                signupBtn.classList.add('text-on-surface');
+                signupBtn.classList.remove('text-on-surface-variant');
+                loginBtn.classList.add('text-on-surface-variant');
+                loginBtn.classList.remove('text-on-surface');
+                
+                title.innerText = "Recruit New Duelist";
+                subtitle.innerText = "Register your identity in the global arena.";
+                submitText.innerText = "Forge Account";
+                
+                confirmPassword.classList.remove('hidden');
+                setTimeout(() => {
+                    confirmPassword.classList.remove('opacity-0', 'translate-y-2');
+                }, 10);
+            }
+        }
+    </script>
+</body></html>

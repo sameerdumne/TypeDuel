@@ -5,21 +5,11 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
-  Bolt,
-  Crown,
-  Flame,
-  Gauge,
-  LockKeyhole,
-  RadioTower,
-  ShieldCheck,
+  Shield,
   Swords,
   Trophy,
-  Users
+  UserCircle
 } from "lucide-react";
-import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
-import { StatCard } from "@/components/ui/StatCard";
-import { ProgressBar } from "@/components/ui/ProgressBar";
 import { useGameActions } from "@/hooks/useGameSocket";
 import { cn } from "@/lib/cn";
 import { useMatchStore } from "@/store/useMatchStore";
@@ -28,10 +18,10 @@ import type { LeaderboardPlayer } from "@/types/game";
 const fallbackLeaders: LeaderboardPlayer[] = [
   {
     id: "demo-1",
-    username: "keystorm",
+    username: "XENO_CORE",
     avatar_url: null,
-    avg_wpm: 128,
-    accuracy: 98.8,
+    avg_wpm: 168,
+    accuracy: 99.2,
     wins: 84,
     losses: 21,
     best_streak: 14,
@@ -41,9 +31,9 @@ const fallbackLeaders: LeaderboardPlayer[] = [
   },
   {
     id: "demo-2",
-    username: "syntaxrush",
+    username: "SYNTH_WAVE",
     avatar_url: null,
-    avg_wpm: 116,
+    avg_wpm: 154,
     accuracy: 97.4,
     wins: 71,
     losses: 18,
@@ -54,9 +44,9 @@ const fallbackLeaders: LeaderboardPlayer[] = [
   },
   {
     id: "demo-3",
-    username: "neonclack",
+    username: "PROTOCOL_ZERO",
     avatar_url: null,
-    avg_wpm: 104,
+    avg_wpm: 149,
     accuracy: 96.2,
     wins: 59,
     losses: 24,
@@ -93,150 +83,192 @@ export function LandingPage() {
     router.push("/match");
   };
 
-  const startPrivateRoom = () => {
-    createRoom();
-    router.push("/match");
-  };
-
   const submitInvite = () => {
     const code = inviteCode.trim();
-    if (!code) {
-      return;
-    }
-
+    if (!code) return;
     joinRoom(code);
     router.push("/match");
   };
 
   return (
-    <main className="mx-auto max-w-7xl px-4 pb-20 pt-8 sm:px-6 lg:pt-14">
-      <section className="grid min-h-[calc(100vh-8rem)] items-center gap-8 lg:grid-cols-[1.08fr_0.92fr]">
-        <div className="animate-floatIn">
-          <Badge className="mb-6 border-cyan-300/25 bg-cyan-300/10">
-            <RadioTower size={14} className="mr-2" />
-            Server-authoritative real-time duels
-          </Badge>
+    <main className="relative">
+      {/* Hero Section */}
+      <section className="relative min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center overflow-hidden">
+        <div className="container mx-auto px-4 sm:px-6 relative z-10 flex flex-col items-center text-center">
+          <div className="mb-8 animate-floatIn">
+            <h1 className="text-5xl sm:text-6xl lg:text-[48px] font-extrabold italic uppercase tracking-tighter text-white leading-none">
+              DOMINATE <span className="text-neon-cyan">THE GRID</span>
+            </h1>
+            <p className="mt-4 max-w-2xl mx-auto text-lg text-text-muted opacity-80">
+              High-octane 1v1 typing battles for the digital elite. No fluff, just pure speed.
+            </p>
+          </div>
 
-          <h1 className="max-w-4xl text-balance text-5xl font-black leading-[0.94] text-white sm:text-6xl lg:text-7xl">
-            TypeDuel
-          </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
-            Face another player on the exact same paragraph, synced countdown, locked seed, and
-            server-verified speed. Win with cleaner words, sharper accuracy, and faster finishes.
-          </p>
-
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Button onClick={startMatch} disabled={!connected} className="min-h-12 px-6 text-base">
-              <Swords size={20} />
-              {queueState === "waiting" ? "Searching..." : "Start Match"}
+          <div className="flex flex-col sm:flex-row gap-6 animate-floatIn" style={{ animationDelay: "200ms" }}>
+            <button
+              onClick={startMatch}
+              disabled={!connected}
+              className="label-caps inline-flex items-center justify-center gap-2 bg-neon-cyan text-[#00363d] px-10 py-4 text-lg font-bold transition-all duration-200 active:scale-95 hover:shadow-glow-strong disabled:opacity-50 disabled:cursor-not-allowed animate-pulseGlow"
+            >
+              {queueState === "waiting" ? "SEARCHING..." : "BATTLE NOW"}
               <ArrowRight size={18} />
-            </Button>
-            <Button variant="secondary" onClick={startPrivateRoom} disabled={!connected}>
-              <LockKeyhole size={18} />
-              Private Room
-            </Button>
-            <Link href="/login">
-              <Button variant="ghost" className="w-full sm:w-auto">
-                Guest or Login
-              </Button>
+            </button>
+            <Link href="/leaderboard">
+              <button className="label-caps inline-flex items-center justify-center gap-2 border border-neon-cyan/50 text-neon-cyan px-10 py-4 text-lg font-bold glass-panel hover:bg-neon-cyan/10 transition-all duration-200 active:scale-95 w-full sm:w-auto">
+                VIEW LEADERBOARDS
+              </button>
             </Link>
           </div>
 
-          <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row animate-floatIn" style={{ animationDelay: "300ms" }}>
             <input
               value={inviteCode}
               onChange={(event) => setInviteCode(event.target.value.toUpperCase())}
               placeholder="ROOM CODE"
-              className="min-h-11 rounded-md border border-white/10 bg-white/10 px-4 text-sm font-bold uppercase tracking-[0.18em] text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/60"
+              className="min-h-11 rounded-md border border-white/10 bg-white/10 px-4 text-sm font-bold uppercase tracking-[0.18em] text-white outline-none transition placeholder:text-slate-500 focus:border-neon-cyan/60"
               maxLength={12}
             />
-            <Button variant="secondary" onClick={submitInvite} disabled={!connected || !inviteCode.trim()}>
-              Join Room
-            </Button>
+            <button
+              onClick={submitInvite}
+              disabled={!connected || !inviteCode.trim()}
+              className="label-caps inline-flex items-center justify-center gap-2 border border-white/[0.12] bg-white/10 px-6 py-2 text-xs text-white transition duration-200 hover:border-neon-cyan/50 hover:bg-white/[0.15] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              JOIN ROOM
+            </button>
           </div>
 
           {roomCode && (
-            <p className="mt-3 text-sm font-semibold text-cyan-100">
+            <p className="mt-3 text-sm font-semibold text-neon-cyan">
               Private room ready: <span className="text-white">{roomCode}</span>
             </p>
           )}
 
-          <div className="mt-10 grid gap-3 sm:grid-cols-3">
-            <StatCard label="Players online" value={liveStats.playersOnline} icon={<Users size={18} />} />
-            <StatCard label="Active matches" value={liveStats.activeMatches} icon={<Bolt size={18} />} />
-            <StatCard label="Queue" value={liveStats.queuedPlayers} icon={<Gauge size={18} />} />
+          {/* Floating Stats */}
+          <div className="mt-8 flex flex-wrap justify-center gap-6 animate-floatIn" style={{ animationDelay: "400ms" }}>
+            <div className="glass-panel px-6 py-4 flex flex-col items-center min-w-[180px]">
+              <span className="stats-value text-neon-cyan">{liveStats.playersOnline}</span>
+              <span className="label-caps text-[10px] text-text-muted tracking-[0.2em]">DUELISTS ONLINE</span>
+            </div>
+            <div className="glass-panel px-6 py-4 flex flex-col items-center min-w-[180px]">
+              <span className="stats-value text-neon-green">{liveStats.activeMatches}</span>
+              <span className="label-caps text-[10px] text-text-muted tracking-[0.2em]">ACTIVE MATCHES</span>
+            </div>
           </div>
         </div>
+      </section>
 
-        <div className="glass-panel relative overflow-hidden rounded-lg p-4 sm:p-6">
-          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300 to-transparent" />
-          <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent,rgba(33,230,255,0.08),transparent)] opacity-70" />
-
-          <div className="relative">
-            <div className="mb-6 flex items-center justify-between">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-500">
-                  Live leaderboard
-                </p>
-                <h2 className="mt-1 text-2xl font-black text-white">Top duelists</h2>
+      {/* Features Section */}
+      <section className="py-16 bg-arena-800 relative">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="glass-panel p-8 group hover:border-neon-cyan/50 transition-all duration-500">
+              <div className="w-12 h-12 mb-4 flex items-center justify-center rounded-lg bg-neon-cyan/10 text-neon-cyan">
+                <Swords size={24} />
               </div>
-              <Trophy className="text-amber-200" />
+              <h3 className="font-headline-md text-headline-md mb-2 text-white">REAL-TIME DUELS</h3>
+              <p className="text-body-md text-text-muted">Zero-latency WebSocket architecture ensures every keystroke counts. Battle opponents globally in millisecond-precise encounters.</p>
             </div>
 
-            <div className="space-y-3">
+            <div className="glass-panel p-8 group hover:border-neon-cyan/50 transition-all duration-500" style={{ animationDelay: "150ms" }}>
+              <div className="w-12 h-12 mb-4 flex items-center justify-center rounded-lg bg-neon-green/10 text-neon-green">
+                <Trophy size={24} />
+              </div>
+              <h3 className="font-headline-md text-headline-md mb-2 text-white">RANKED LADDER</h3>
+              <p className="text-body-md text-text-muted">Climb from Bronze to Grandmaster. Our Elo-based matchmaking puts you against warriors of equal speed and precision.</p>
+            </div>
+
+            <div className="glass-panel p-8 group hover:border-neon-cyan/50 transition-all duration-500" style={{ animationDelay: "300ms" }}>
+              <div className="w-12 h-12 mb-4 flex items-center justify-center rounded-lg bg-neon-red/10 text-neon-red">
+                <Shield size={24} />
+              </div>
+              <h3 className="font-headline-md text-headline-md mb-2 text-white">ANTI-CHEAT</h3>
+              <p className="text-body-md text-text-muted">Server-authoritative validation and heuristic analysis keep the arena clean. Only human speed is tolerated here.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Arena Preview */}
+      <section className="py-16 bg-arena-950 overflow-hidden">
+        <div className="container mx-auto px-4 sm:px-6 text-center">
+          <h2 className="text-headline-lg font-extrabold uppercase tracking-tighter text-white mb-8">THE ARENA AWAITS</h2>
+          <div className="relative mx-auto max-w-5xl">
+            <div className="glass-panel rounded-xl overflow-hidden shadow-glass border-white/20">
+              <div className="bg-arena-400 px-4 py-3 flex items-center gap-2 border-b border-white/10">
+                <div className="flex gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-neon-red/50"></div>
+                  <div className="w-3 h-3 rounded-full bg-neon-green/50"></div>
+                  <div className="w-3 h-3 rounded-full bg-neon-cyan/50"></div>
+                </div>
+                <div className="mx-auto bg-arena-600 px-6 py-1 rounded text-[10px] text-text-muted font-mono">typeduel.arena/match/active</div>
+              </div>
+              <div className="p-8 md:p-12 bg-arena-800 text-left relative min-h-[400px] flex flex-col justify-center">
+                <div className="flex justify-between items-end mb-12">
+                  <div className="flex gap-4 items-center">
+                    <div className="w-12 h-12 rounded bg-neon-cyan flex items-center justify-center font-bold text-black">YOU</div>
+                    <div>
+                      <div className="label-caps text-neon-cyan">WPM</div>
+                      <div className="stats-value">142</div>
+                    </div>
+                  </div>
+                  <div className="text-center stats-value text-4xl text-white/20 tracking-widest">VERSUS</div>
+                  <div className="flex gap-4 items-center flex-row-reverse text-right">
+                    <div className="w-12 h-12 rounded bg-neon-red flex items-center justify-center font-bold text-black">CPU</div>
+                    <div>
+                      <div className="label-caps text-neon-red">WPM</div>
+                      <div className="stats-value">138</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="font-mono text-3xl leading-relaxed text-white/30 tracking-tight">
+                  <span className="text-neon-cyan border-r-2 border-neon-cyan animate-pulse">Efficiency</span> is doing things right; effectiveness is doing the right things. The goal of TypeDuel is to push the boundaries of human-computer interaction through...
+                </div>
+                <div className="absolute bottom-4 right-4 flex gap-2">
+                  <div className="px-3 py-1 rounded-full bg-arena-500 text-[10px] font-mono text-text-muted">ACC: 99.4%</div>
+                  <div className="px-3 py-1 rounded-full bg-arena-500 text-[10px] font-mono text-text-muted">POS: #1</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Season Elite */}
+      <section className="py-16 bg-arena-800 relative">
+        <div className="container mx-auto px-4 sm:px-6 relative z-10">
+          <div className="max-w-3xl mx-auto">
+            <div className="text-center mb-8">
+              <h2 className="font-headline-md text-headline-md text-white mb-2">SEASON ELITE</h2>
+              <p className="label-caps text-text-muted">TOP DUELISTS THIS HOUR</p>
+            </div>
+            <div className="flex flex-col gap-4">
               {leaders.map((leader, index) => (
                 <div
                   key={leader.id}
                   className={cn(
-                    "rounded-lg border border-white/10 bg-white/[0.06] p-4 transition hover:border-cyan-300/30 hover:bg-white/10",
-                    index === 0 && "shadow-glow"
+                    "glass-panel p-4 flex items-center justify-between transition-all duration-300",
+                    index === 0 && "border-l-4 border-l-neon-cyan shadow-glow"
                   )}
                 >
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex min-w-0 items-center gap-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-white/10 bg-arena-800 text-sm font-black text-cyan-100">
-                        {index === 0 ? <Crown size={18} /> : index + 1}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="truncate font-black text-white">{leader.username}</p>
-                        <p className="text-xs font-semibold text-slate-400">
-                          {leader.rank_name} {leader.division} · {leader.mmr} MMR
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-lg font-black text-cyan-100">{leader.avg_wpm}</p>
-                      <p className="text-xs font-semibold text-slate-500">WPM</p>
-                    </div>
-                  </div>
-                  <div className="mt-4 grid grid-cols-3 gap-3 text-xs font-semibold text-slate-400">
-                    <span>{leader.accuracy}% acc</span>
-                    <span>{leader.wins} wins</span>
-                    <span className="flex items-center gap-1">
-                      <Flame size={13} className="text-amber-200" />
-                      {leader.best_streak}
+                  <div className="flex items-center gap-6">
+                    <span className={cn("stats-value text-2xl w-8", index === 0 ? "text-neon-cyan" : "text-text-muted")}>
+                      {String(index + 1).padStart(2, "0")}
                     </span>
+                    <div className="w-10 h-10 rounded-full overflow-hidden bg-arena-400 flex items-center justify-center">
+                      {leader.avatar_url ? (
+                        <img className="w-full h-full object-cover" src={leader.avatar_url} alt={leader.username} />
+                      ) : (
+                        <UserCircle size={20} className="text-text-muted" />
+                      )}
+                    </div>
+                    <span className="font-headline-md text-lg text-white">{leader.username}</span>
                   </div>
-                  <ProgressBar value={Math.min((leader.mmr / 2200) * 100, 100)} className="mt-3" />
+                  <div className="text-right">
+                    <span className="block stats-value text-xl text-neon-cyan">{leader.avg_wpm}</span>
+                    <span className="label-caps text-[10px] text-text-muted">AVG WPM</span>
+                  </div>
                 </div>
               ))}
-            </div>
-
-            <div className="mt-6 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-lg border border-emerald-300/20 bg-emerald-300/10 p-4">
-                <ShieldCheck className="mb-3 text-emerald-200" />
-                <p className="font-bold text-white">Anti-cheat validation</p>
-                <p className="mt-1 text-sm leading-6 text-slate-400">
-                  Keystroke pace, paste bursts, paragraph seed, and WPM are checked on the server.
-                </p>
-              </div>
-              <div className="rounded-lg border border-fuchsia-300/20 bg-fuchsia-300/10 p-4">
-                <Swords className="mb-3 text-fuchsia-200" />
-                <p className="font-bold text-white">Matched paragraphs</p>
-                <p className="mt-1 text-sm leading-6 text-slate-400">
-                  Both players receive the same text and the same synchronized start time.
-                </p>
-              </div>
             </div>
           </div>
         </div>

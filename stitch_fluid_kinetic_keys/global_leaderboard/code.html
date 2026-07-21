@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TypeDuel | Global Leaderboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-background": "#e2e1f0",
+                    "on-error-container": "#ffdad6",
+                    "tertiary": "#afffd5",
+                    "tertiary-fixed-dim": "#4edea3",
+                    "on-primary-container": "#00636f",
+                    "tertiary-fixed": "#6ffbbe",
+                    "outline": "#859396",
+                    "on-surface": "#e2e1f0",
+                    "on-primary-fixed": "#001f24",
+                    "error-container": "#93000a",
+                    "glass-fill": "rgba(8, 13, 28, 0.72)",
+                    "primary-fixed-dim": "#00daf3",
+                    "on-error": "#690005",
+                    "on-tertiary-container": "#006746",
+                    "surface-variant": "#333440",
+                    "surface": "#11131d",
+                    "primary-container": "#21e6ff",
+                    "primary": "#c8f6ff",
+                    "surface-container": "#1e1f2a",
+                    "tertiary-container": "#5ceaae",
+                    "background": "#11131d",
+                    "on-primary-fixed-variant": "#004f58",
+                    "on-tertiary-fixed-variant": "#005236",
+                    "on-secondary": "#5f004f",
+                    "error": "#ffb4ab",
+                    "surface-tint": "#00daf3",
+                    "on-secondary-fixed-variant": "#860070",
+                    "surface-dim": "#11131d",
+                    "surface-container-low": "#1a1b26",
+                    "outline-variant": "#3b494c",
+                    "inverse-on-surface": "#2f303b",
+                    "secondary-fixed-dim": "#ffade3",
+                    "surface-container-lowest": "#0c0d18",
+                    "secondary-container": "#c000a2",
+                    "secondary-fixed": "#ffd8ee",
+                    "on-primary": "#00363d",
+                    "error-red": "#ef4444",
+                    "on-tertiary": "#003824",
+                    "glass-border": "rgba(255, 255, 255, 0.1)",
+                    "secondary": "#ffade3",
+                    "surface-bright": "#383844",
+                    "on-secondary-container": "#ffe0f0",
+                    "surface-lowest": "#080b14",
+                    "selection-blue": "rgba(33, 230, 255, 0.35)",
+                    "inverse-primary": "#006875",
+                    "text-primary": "#f8fbff",
+                    "primary-fixed": "#9bf0ff",
+                    "surface-container-highest": "#333440",
+                    "on-secondary-fixed": "#3a0030",
+                    "inverse-surface": "#e2e1f0",
+                    "on-tertiary-fixed": "#002113",
+                    "surface-container-high": "#282934",
+                    "surface-low": "#10172a",
+                    "on-surface-variant": "#bac9cc"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "gutter": "1.5rem",
+                    "grid-unit": "44px",
+                    "stack-lg": "2rem",
+                    "stack-md": "1rem",
+                    "margin-page": "2rem",
+                    "stack-sm": "0.5rem"
+            },
+            "fontFamily": {
+                    "label-caps": ["Inter", "sans-serif"],
+                    "body-lg": ["jetbrainsMono", "monospace"],
+                    "headline-lg-mobile": ["Inter", "sans-serif"],
+                    "headline-md": ["Inter", "sans-serif"],
+                    "body-md": ["Inter", "sans-serif"],
+                    "stats-value": ["jetbrainsMono", "monospace"],
+                    "headline-lg": ["Inter", "sans-serif"]
+            },
+            "fontSize": {
+                    "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                    "body-lg": ["20px", {"lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["32px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "800"}],
+                    "headline-md": ["24px", {"lineHeight": "1.3", "letterSpacing": "0.025em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400"}],
+                    "stats-value": ["32px", {"lineHeight": "1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "0.05em", "fontWeight": "800"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #070812;
+            background-image: 
+                linear-gradient(rgba(33, 230, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(33, 230, 255, 0.05) 1px, transparent 1px);
+            background-size: 44px 44px;
+            color: #e2e1f0;
+            overflow-x: hidden;
+        }
+
+        .atmospheric-glow-1 {
+            position: fixed;
+            top: -10%;
+            left: -10%;
+            width: 40%;
+            height: 40%;
+            background: radial-gradient(circle, rgba(0, 218, 243, 0.15) 0%, transparent 70%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .atmospheric-glow-2 {
+            position: fixed;
+            bottom: -10%;
+            right: -10%;
+            width: 40%;
+            height: 40%;
+            background: radial-gradient(circle, rgba(255, 0, 162, 0.1) 0%, transparent 70%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .glass-panel {
+            background: rgba(8, 13, 28, 0.72);
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .pulse-glow {
+            animation: pulseGlow 2s infinite ease-in-out;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 5px rgba(0, 218, 243, 0.2); }
+            50% { box-shadow: 0 0 20px rgba(0, 218, 243, 0.5); }
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+
+        .rank-diamond { background: linear-gradient(135deg, #b9f2ff 0%, #00daf3 100%); }
+        .rank-platinum { background: linear-gradient(135deg, #e5e4e2 0%, #b4b4b4 100%); }
+        .rank-gold { background: linear-gradient(135deg, #ffd700 0%, #ffa500 100%); }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(33, 230, 255, 0.3); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(33, 230, 255, 0.5); }
+
+        #mesh-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md selection:bg-selection-blue selection:text-white">
+<canvas id="mesh-canvas"></canvas>
+<script>
+(function() {
+  const canvas = document.getElementById('mesh-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H;
+  let mouse = { x: -1000, y: -1000 };
+  let nodes = [];
+  const SPACING = 56;
+  const JITTER = 12;
+  const MOUSE_RADIUS = 250;
+  const NODE_BASE_RADIUS = 1.0;
+  const NODE_ACTIVE_RADIUS = 4.0;
+  const LINE_BASE_ALPHA = 0.07;
+  const LINE_ACTIVE_ALPHA = 0.35;
+  const NODE_BASE_ALPHA = 0.18;
+  const NODE_ACTIVE_ALPHA = 1.0;
+  const CYAN = { r: 0, g: 218, b: 243 };
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    buildGrid();
+  }
+
+  function buildGrid() {
+    nodes = [];
+    const cols = Math.ceil(W / SPACING) + 1;
+    const rows = Math.ceil(H / SPACING) + 1;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        nodes.push({
+          x: c * SPACING + (Math.random() - 0.5) * JITTER,
+          y: r * SPACING + (Math.random() - 0.5) * JITTER,
+          ox: c * SPACING,
+          oy: r * SPACING,
+          phase: Math.random() * Math.PI * 2
+        });
+      }
+    }
+  }
+
+  window.addEventListener('resize', resize);
+  window.addEventListener('mousemove', e => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+  });
+  window.addEventListener('mouseleave', () => {
+    mouse.x = -1000;
+    mouse.y = -1000;
+  });
+
+  function draw(t) {
+    ctx.clearRect(0, 0, W, H);
+    const time = t * 0.001;
+    for (let i = 0; i < nodes.length; i++) {
+      const n = nodes[i];
+      n.x = n.ox + Math.sin(time * 0.3 + n.phase) * 2;
+      n.y = n.oy + Math.cos(time * 0.25 + n.phase * 1.3) * 2;
+    }
+    const cols = Math.ceil(W / SPACING) + 1;
+    for (let i = 0; i < nodes.length; i++) {
+      const n = nodes[i];
+      const dx = n.x - mouse.x;
+      const dy = n.y - mouse.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const influence = Math.max(0, 1 - dist / MOUSE_RADIUS);
+      n._influence = influence;
+    }
+    ctx.lineWidth = 1;
+    for (let i = 0; i < nodes.length; i++) {
+      const n = nodes[i];
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      if (col < cols - 1) {
+        const right = nodes[i + 1];
+        const avgInf = (n._influence + right._influence) * 0.5;
+        const alpha = LINE_BASE_ALPHA + (LINE_ACTIVE_ALPHA - LINE_BASE_ALPHA) * avgInf;
+        ctx.beginPath();
+        ctx.strokeStyle = `rgba(${CYAN.r},${CYAN.g},${CYAN.b},${alpha})`;
+        ctx.moveTo(n.x, n.y);
+        ctx.lineTo(right.x, right.y);
+        ctx.stroke();
+      }
+      if (row < Math.ceil(nodes.length / cols) - 1 && i + cols < nodes.length) {
+        const below = nodes[i + cols];
+        const avgInf = (n._influence + below._influence) * 0.5;
+        const alpha = LINE_BASE_ALPHA + (LINE_ACTIVE_ALPHA - LINE_BASE_ALPHA) * avgInf;
+        ctx.beginPath();
+        ctx.strokeStyle = `rgba(${CYAN.r},${CYAN.g},${CYAN.b},${alpha})`;
+        ctx.moveTo(n.x, n.y);
+        ctx.lineTo(below.x, below.y);
+        ctx.stroke();
+      }
+    }
+    for (let i = 0; i < nodes.length; i++) {
+      const n = nodes[i];
+      const inf = n._influence;
+      const radius = NODE_BASE_RADIUS + (NODE_ACTIVE_RADIUS - NODE_BASE_RADIUS) * inf;
+      const alpha = NODE_BASE_ALPHA + (NODE_ACTIVE_ALPHA - NODE_BASE_ALPHA) * inf;
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, radius, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${CYAN.r},${CYAN.g},${CYAN.b},${alpha})`;
+      ctx.fill();
+      if (inf > 0.3) {
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, radius + 4 * inf, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${CYAN.r},${CYAN.g},${CYAN.b},${inf * 0.15})`;
+        ctx.fill();
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+
+  resize();
+  requestAnimationFrame(draw);
+})();
+</script>
+<div class="atmospheric-glow-1"></div>
+<div class="atmospheric-glow-2"></div>
+<!-- TopNavBar -->
+<header class="sticky top-0 w-full z-50 bg-glass-fill backdrop-blur-xl border-b border-glass-border shadow-[0_24px_80px_rgba(0,0,0,0.5)]">
+<div class="flex justify-between items-center px-gutter py-4 max-w-7xl mx-auto">
+<div class="flex items-center gap-stack-md">
+<span class="font-headline-md text-headline-md font-black italic text-primary-fixed tracking-tighter uppercase">TypeDuel</span>
+<nav class="hidden md:flex items-center gap-6 ml-8">
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary-fixed transition-colors duration-200" href="#">Arena</a>
+<a class="font-body-md text-body-md text-primary border-b-2 border-primary-fixed-dim pb-1" href="#">Leaderboard</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary-fixed transition-colors duration-200" href="#">Training</a>
+</nav>
+</div>
+<div class="flex items-center gap-stack-md">
+<button class="hidden sm:block font-label-caps text-label-caps text-on-surface-variant hover:text-secondary-fixed transition-all px-4 py-2">Login</button>
+<button class="bg-primary-container text-on-primary-fixed font-label-caps text-label-caps px-6 py-2.5 rounded-lg active:scale-95 transition-transform hover:brightness-110 shadow-[0_0_20px_rgba(33,230,255,0.3)]">Battle Now</button>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-gutter py-stack-lg relative z-[2]">
+<!-- Hall of Fame Header -->
+<section class="text-center mb-16">
+<h1 class="font-headline-lg text-headline-lg font-black uppercase tracking-tighter mb-4">The Hall of Fame</h1>
+<p class="text-on-surface-variant max-w-2xl mx-auto">Witness the fastest fingers in the digital arena. These typists have transcended human limits to claim their place at the summit.</p>
+</section>
+<!-- Podium Section -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-end mb-24">
+<!-- Rank 2: Platinum -->
+<div class="order-2 md:order-1">
+<div class="glass-panel rounded-xl p-8 flex flex-col items-center text-center transform transition-transform hover:-translate-y-2 border-t-4 border-slate-400">
+<div class="relative mb-6">
+<div class="w-24 h-24 rounded-full border-4 border-slate-400 overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="A professional gamer profile avatar with futuristic neon helmet and reflective visor, set against a sleek industrial dark-mode background with cyan highlights." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCNoCpodqu1awRWX7gU1lr-gDiaGBKqb9rjiPHWGet1g2rJPDyrj9pL6DqLwLN-RFhrhy76sIB7U4-iPW4wQaPjRCG6AARBaTlF8ZWtphXYoiIoz7iZDtp_R1-bxIPqnhYvyzLuhlvqZk61HjwK7O4uNVlpDm6XCL36sARZ1vk1tz7-5Iszq6IMJ_l4_g1hbCHmV1kUXjXz6TEG5syvcZaSK0DT9iz6rWKSsPxJqZIg36Uyt0Klf-ELmy9G8RqxqSmyoKdlIAJDknA"/>
+</div>
+<div class="absolute -bottom-2 -right-2 w-10 h-10 rank-platinum rounded-full flex items-center justify-center text-on-primary-fixed font-bold text-lg shadow-lg">2</div>
+</div>
+<span class="font-label-caps text-label-caps text-slate-400 mb-2">PLATINUM DUELIST</span>
+<h3 class="font-headline-md text-headline-md text-white mb-4">SwiftStriker_99</h3>
+<div class="grid grid-cols-2 gap-4 w-full">
+<div class="bg-surface-lowest p-3 rounded-lg border border-glass-border">
+<p class="font-label-caps text-[10px] text-on-surface-variant">AVG WPM</p>
+<p class="font-stats-value text-stats-value text-primary-fixed-dim">152</p>
+</div>
+<div class="bg-surface-lowest p-3 rounded-lg border border-glass-border">
+<p class="font-label-caps text-[10px] text-on-surface-variant">ACCURACY</p>
+<p class="font-stats-value text-stats-value text-tertiary-fixed-dim">99.2%</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Rank 1: Diamond -->
+<div class="order-1 md:order-2">
+<div class="glass-panel rounded-xl p-10 flex flex-col items-center text-center transform transition-transform hover:-translate-y-4 border-t-4 border-primary-fixed-dim pulse-glow scale-105 relative z-10">
+<div class="absolute -top-6 bg-primary-fixed-dim text-on-primary-fixed px-6 py-1 font-label-caps text-label-caps rounded-full shadow-[0_0_20px_rgba(0,218,243,0.6)]">REIGNING CHAMPION</div>
+<div class="relative mb-6">
+<div class="w-32 h-32 rounded-full border-4 border-primary-fixed-dim overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="A high-tech digital avatar representing a champion typist, featuring glowing blue cybernetic eyes and a sleek silver cybernetic mask, set in a deep space environment with atmospheric teal glows." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4HvlL5GwmpG7VndkE36Pqo-ZGa6G6qemfhrinij9ylxnGNqIwYfk5Sb1X0-r2SDLW9hNQO6mgGms-hTvhaK_Ue6wC5QWir87xAfRPtCGaZIrniEXwlZrWVbrV7OAuxhj0EXAb4oNacsUF9a_hk72Zu-WufJY2z_Z7BFsA5xWMAfrPvCPC4E0onFcvekNza6soQ9pR64__QAZN6uNEcRejZUH8QPJi-KmkMgemn4yIRvO4Rl-1N4n38g_W7LkxokDtI4LO0PFKKCI"/>
+</div>
+<div class="absolute -bottom-2 -right-2 w-12 h-12 rank-diamond rounded-full flex items-center justify-center text-on-primary-fixed font-bold text-2xl shadow-xl border-2 border-white/20">1</div>
+</div>
+<span class="font-label-caps text-label-caps text-primary-fixed-dim mb-2">DIAMOND ASCENDANT</span>
+<h3 class="font-headline-md text-headline-md text-white mb-4">NullPointer_Ex</h3>
+<div class="grid grid-cols-2 gap-4 w-full mb-4">
+<div class="bg-surface-lowest p-4 rounded-lg border border-primary-fixed-dim/30">
+<p class="font-label-caps text-[10px] text-on-surface-variant">AVG WPM</p>
+<p class="font-stats-value text-stats-value text-primary-fixed-dim">184</p>
+</div>
+<div class="bg-surface-lowest p-4 rounded-lg border border-primary-fixed-dim/30">
+<p class="font-label-caps text-[10px] text-on-surface-variant">ACCURACY</p>
+<p class="font-stats-value text-stats-value text-tertiary-fixed-dim">99.8%</p>
+</div>
+</div>
+<p class="font-label-caps text-label-caps text-on-surface-variant">WIN RATE: 94%</p>
+</div>
+</div>
+<!-- Rank 3: Gold -->
+<div class="order-3">
+<div class="glass-panel rounded-xl p-8 flex flex-col items-center text-center transform transition-transform hover:-translate-y-2 border-t-4 border-yellow-500">
+<div class="relative mb-6">
+<div class="w-24 h-24 rounded-full border-4 border-yellow-500 overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="A competitive e-sports player avatar with a tactical headset and a high-contrast orange and black suit, set against a dark background with vibrant golden sparks and bokeh effects." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD44TP8d6GrgljQwXlkD33fpfsf863tfZ5CAyD1HH0_C3wpS8rCly20v4c-NooXyaiB6yzHWBMIAmaoVvd7R87Y9v8G9OZ7qfLY9UQli8K21ux1IL9WXE70_mFsvEc-xgwOMjA5QFswICI0yIw98PMJvQkfhPi8IC_Gw5N62TKjpngLFN1sDAwn7pLwIza2iyyog3YflJU760KjVdbzLHiZ12biZWv_n4R_iqqgA1rpQGqCcR_-G2Ik05tLwtuEee1b0z4FK3n0CIc"/>
+</div>
+<div class="absolute -bottom-2 -right-2 w-10 h-10 rank-gold rounded-full flex items-center justify-center text-on-primary-fixed font-bold text-lg shadow-lg">3</div>
+</div>
+<span class="font-label-caps text-label-caps text-yellow-500 mb-2">GOLD COMMANDER</span>
+<h3 class="font-headline-md text-headline-md text-white mb-4">Ghost_Buffer</h3>
+<div class="grid grid-cols-2 gap-4 w-full">
+<div class="bg-surface-lowest p-3 rounded-lg border border-glass-border">
+<p class="font-label-caps text-[10px] text-on-surface-variant">AVG WPM</p>
+<p class="font-stats-value text-stats-value text-primary-fixed-dim">147</p>
+</div>
+<div class="bg-surface-lowest p-3 rounded-lg border border-glass-border">
+<p class="font-label-caps text-[10px] text-on-surface-variant">ACCURACY</p>
+<p class="font-stats-value text-stats-value text-tertiary-fixed-dim">98.5%</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Global Leaderboard Table -->
+<section class="glass-panel rounded-xl overflow-hidden mb-24">
+<div class="p-8 border-b border-glass-border flex flex-col md:flex-row justify-between items-center gap-4">
+<h2 class="font-headline-md text-headline-md uppercase tracking-wide">Top 100 Global Duelists</h2>
+<div class="flex gap-4 w-full md:w-auto">
+<div class="relative flex-grow">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+<input class="w-full bg-surface-container-low border border-glass-border rounded-lg pl-10 pr-4 py-2 font-body-md text-on-surface focus:border-primary-fixed-dim focus:ring-0 transition-all" placeholder="Search duelist..." type="text"/>
+</div>
+<button class="bg-surface-container-high border border-glass-border px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-surface-bright transition-colors">
+<span class="material-symbols-outlined">filter_list</span>
+<span class="font-label-caps text-label-caps">Filter</span>
+</button>
+</div>
+</div>
+<div class="overflow-x-auto custom-scrollbar">
+<table class="w-full text-left border-collapse min-w-[800px]">
+<thead class="bg-surface-container-lowest border-b border-glass-border">
+<tr>
+<th class="px-8 py-4 font-label-caps text-label-caps text-on-surface-variant">RANK</th>
+<th class="px-8 py-4 font-label-caps text-label-caps text-on-surface-variant">DUELIST</th>
+<th class="px-8 py-4 font-label-caps text-label-caps text-on-surface-variant">RANK TIER</th>
+<th class="px-8 py-4 font-label-caps text-label-caps text-on-surface-variant text-right">AVG WPM</th>
+<th class="px-8 py-4 font-label-caps text-label-caps text-on-surface-variant text-right">ACCURACY</th>
+<th class="px-8 py-4 font-label-caps text-label-caps text-on-surface-variant text-right">WIN RATE</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-glass-border">
+<!-- Table Rows -->
+<tr class="hover:bg-white/5 transition-colors group">
+<td class="px-8 py-6 font-stats-value text-lg text-primary-fixed-dim">#4</td>
+<td class="px-8 py-6">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-surface-container border border-primary-fixed-dim/20">
+<img class="w-full h-full object-cover" data-alt="A stylized digital profile photo of a player wearing a neon green visor, lit by dramatic rim lighting against a dark navy technical interface background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBzanVqoLvJK6HD0j_rUYozox9k1LabzYpyx_kRl_vZSwWqgmDzSxTT96ohUiSid4bG0Cx3kPOlZop-o9Q-cS80bXInCcc9B1DASwIUlDpN7eQpF85S-nhFJAjnuSRQJWl3uA39lL--6Ck_mnIhvcJgs0SKSr6kWKl6-3sAsBpokjeVMG7F-jsth_-_UO3JcLv8geLggcolBYvLhZk8o89BDtzlpLipHPkiHN7ZrU0u8UOlUZtB65khdgUEh-pQRWG6vJ5EaLQtPc4"/>
+</div>
+<span class="font-body-md font-bold text-white group-hover:text-primary-fixed transition-colors">Macro_King</span>
+</div>
+</td>
+<td class="px-8 py-6">
+<div class="inline-flex items-center gap-2 px-3 py-1 bg-surface-container-highest rounded-full border border-purple-500/30">
+<div class="w-2 h-2 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.8)]"></div>
+<span class="font-label-caps text-[10px] text-purple-200">GRANDMASTER</span>
+</div>
+</td>
+<td class="px-8 py-6 font-stats-value text-right text-primary-fixed-dim">138</td>
+<td class="px-8 py-6 font-stats-value text-right text-tertiary-fixed-dim">97.8%</td>
+<td class="px-8 py-6 font-stats-value text-right text-secondary-fixed-dim">88%</td>
+</tr>
+<tr class="hover:bg-white/5 transition-colors group">
+<td class="px-8 py-6 font-stats-value text-lg text-on-surface-variant">#5</td>
+<td class="px-8 py-6">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-surface-container border border-glass-border">
+<img class="w-full h-full object-cover" data-alt="An artistic digital portrait of a female gamer with long dark hair, wearing a white futuristic headset with magenta neon glows, against a dark bokeh background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAzJbFrp4FzwQHstQ-6FRf3x6DIFGAY6vfzaAqkVfbu5iYZMuZc3Anvi3bmRt_CEtZdqXJ9XPZw9KJwd0mf8C8u-W2LFKUyCeCytnOfbBCdSQhz4GocKjIqzR6MCaVS7GKKSBkIUMynKpyVORkcIX9XzVTRvwtjg4do5P5-TX-XVWE1DixHNsc4ggCANqoUl5MRBd6cLftC9PAzJ2NdsuYrxezy7ZexNzbfzTGhd9KaLcx6mYPEUdDXc69n7Gwaot1hRaQCKD6gWhk"/>
+</div>
+<span class="font-body-md font-bold text-white group-hover:text-primary-fixed transition-colors">ByteWitch</span>
+</div>
+</td>
+<td class="px-8 py-6">
+<div class="inline-flex items-center gap-2 px-3 py-1 bg-surface-container-highest rounded-full border border-purple-500/30">
+<div class="w-2 h-2 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.8)]"></div>
+<span class="font-label-caps text-[10px] text-purple-200">GRANDMASTER</span>
+</div>
+</td>
+<td class="px-8 py-6 font-stats-value text-right text-primary-fixed-dim">132</td>
+<td class="px-8 py-6 font-stats-value text-right text-tertiary-fixed-dim">98.1%</td>
+<td class="px-8 py-6 font-stats-value text-right text-secondary-fixed-dim">85%</td>
+</tr>
+<tr class="hover:bg-white/5 transition-colors group">
+<td class="px-8 py-6 font-stats-value text-lg text-on-surface-variant">#6</td>
+<td class="px-8 py-6">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-surface-container border border-glass-border">
+<img class="w-full h-full object-cover" data-alt="A minimalist tech avatar of a character in a dark hooded jacket with luminous blue circuitry patterns, set in a rainy neon-lit cyberpunk city alley." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAoB3XRnEp41Emd2EB1Cux4p2Wgdunxr0FWYS-4YR5JumMjLFCVbQ9tgOlcJlNt6ibGw_ERLAENlMuTseYV9hZSkfkQDZp6ReBUQsl0FWpx5t7uZGqIoQgiQPoF3nO1TLeWQsKOZDbZr7xWK_AZZlRAfRXn0I7nohlYXnuRGJ1Hs-4JF5YoNcP-HCkEd1tQFZ3hVQ290tpkQtRRzmTrR849VlP4JtNrOc0f-05ya5fKhN_8iCKMvXCxx7FprBMFMJ1wpfdKoj1yTCQ"/>
+</div>
+<span class="font-body-md font-bold text-white group-hover:text-primary-fixed transition-colors">ShadowType</span>
+</div>
+</td>
+<td class="px-8 py-6">
+<div class="inline-flex items-center gap-2 px-3 py-1 bg-surface-container-highest rounded-full border border-red-500/30">
+<div class="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]"></div>
+<span class="font-label-caps text-[10px] text-red-200">MASTER</span>
+</div>
+</td>
+<td class="px-8 py-6 font-stats-value text-right text-primary-fixed-dim">129</td>
+<td class="px-8 py-6 font-stats-value text-right text-tertiary-fixed-dim">96.5%</td>
+<td class="px-8 py-6 font-stats-value text-right text-secondary-fixed-dim">82%</td>
+</tr>
+<!-- Additional Rows (Simulated) -->
+<tr class="hover:bg-white/5 transition-colors group">
+<td class="px-8 py-6 font-stats-value text-lg text-on-surface-variant">#7</td>
+<td class="px-8 py-6">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-surface-container border border-glass-border">
+<img class="w-full h-full object-cover" data-alt="A futuristic portrait of a young competitive gamer with short bleached hair and blue light reflecting on their face from a monitor, in a clean, high-tech dark gaming studio." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvV-YW2EOUsGbvWpSpc2YNUcKQwMjJV0g26ucrsZ--k_sNavCtu-D7L5dVZDkIkffh_OxBf4duaaMKvpOgC9dyqtBUcmimq5HDWrt2gvLv8MnwV_poFp-OsUO-6k9foB8K8iqn-MATuNo-FK4uabkwsPuQZvY2EtmjaR3sQ50QAurnMGG4d75cr7GniiL12QC3uEVgBdf_jugO1OtS8-GJYaiwfXhZGzfVNVU-1scOEo5HULURjy3Xh5_Pd-DiNg2wJqLbkjTm6Eo"/>
+</div>
+<span class="font-body-md font-bold text-white group-hover:text-primary-fixed transition-colors">Vortex_Key</span>
+</div>
+</td>
+<td class="px-8 py-6">
+<div class="inline-flex items-center gap-2 px-3 py-1 bg-surface-container-highest rounded-full border border-red-500/30">
+<div class="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]"></div>
+<span class="font-label-caps text-[10px] text-red-200">MASTER</span>
+</div>
+</td>
+<td class="px-8 py-6 font-stats-value text-right text-primary-fixed-dim">125</td>
+<td class="px-8 py-6 font-stats-value text-right text-tertiary-fixed-dim">95.9%</td>
+<td class="px-8 py-6 font-stats-value text-right text-secondary-fixed-dim">79%</td>
+</tr>
+<!-- Placeholder rows to suggest scrollable list -->
+<tr class="opacity-40 select-none">
+<td class="px-8 py-8 text-center font-label-caps tracking-[0.5em] text-on-surface-variant" colspan="6">LOADING REMAINING ELITE DATA...</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Pagination/Navigation -->
+<div class="p-8 border-t border-glass-border flex justify-between items-center bg-surface-container-low">
+<span class="text-on-surface-variant font-label-caps text-[10px]">SHOWING 1-10 OF 100</span>
+<div class="flex gap-2">
+<button class="w-10 h-10 rounded-lg flex items-center justify-center border border-glass-border hover:bg-surface-bright disabled:opacity-30" disabled="">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="w-10 h-10 rounded-lg flex items-center justify-center bg-primary-container text-on-primary-fixed font-bold">1</button>
+<button class="w-10 h-10 rounded-lg flex items-center justify-center border border-glass-border hover:bg-surface-bright">2</button>
+<button class="w-10 h-10 rounded-lg flex items-center justify-center border border-glass-border hover:bg-surface-bright">3</button>
+<span class="flex items-center px-2 text-on-surface-variant">...</span>
+<button class="w-10 h-10 rounded-lg flex items-center justify-center border border-glass-border hover:bg-surface-bright">10</button>
+<button class="w-10 h-10 rounded-lg flex items-center justify-center border border-glass-border hover:bg-surface-bright">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</section>
+<!-- CTA Section -->
+<section class="glass-panel rounded-xl p-stack-lg text-center relative overflow-hidden">
+<div class="absolute inset-0 opacity-10 pointer-events-none">
+
+</div>
+<h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg font-black uppercase italic mb-6 relative z-10">Think You're Faster?</h2>
+<p class="text-on-surface-variant mb-10 max-w-xl mx-auto relative z-10">Jump into the arena now and start your climb to the top. The leaderboard resets every season.</p>
+<button class="bg-primary-container text-on-primary-fixed font-label-caps text-label-caps px-12 py-5 rounded-lg active:scale-95 transition-transform hover:brightness-110 shadow-[0_0_30px_rgba(33,230,255,0.4)] relative z-10 text-xl font-black">START YOUR DUEL</button>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-stack-lg border-t border-outline-variant bg-surface-lowest mt-20 relative z-[2]">
+<div class="flex flex-col md:flex-row justify-between items-center px-margin-page gap-stack-md max-w-7xl mx-auto">
+<div class="flex flex-col items-center md:items-start gap-2">
+<span class="font-headline-md text-headline-md text-on-surface font-black italic tracking-tighter">TYPEDUEL</span>
+<p class="font-label-caps text-label-caps text-tertiary-fixed-dim">© 2024 TYPEDUEL ARENA. ALL RIGHTS RESERVED.</p>
+</div>
+<div class="flex gap-8">
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-secondary-fixed transition-all opacity-80 hover:opacity-100" href="#">Terms of Service</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-secondary-fixed transition-all opacity-80 hover:opacity-100" href="#">Privacy Policy</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-secondary-fixed transition-all opacity-80 hover:opacity-100" href="#">Discord</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-secondary-fixed transition-all opacity-80 hover:opacity-100" href="#">Support</a>
+</div>
+</div>
+</footer>
+<script>
+        // Micro-interaction: Hover effects for table rows
+        const rows = document.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            row.addEventListener('mouseenter', () => {
+                if(!row.classList.contains('select-none')) {
+                    row.style.boxShadow = 'inset 4px 0 0 #00daf3';
+                }
+            });
+            row.addEventListener('mouseleave', () => {
+                row.style.boxShadow = 'none';
+            });
+        });
+
+        // Simulating loading state for "infinite scroll" feel
+        const loadingRow = document.querySelector('.select-none');
+        let dots = 0;
+        setInterval(() => {
+            dots = (dots + 1) % 4;
+            const text = "LOADING REMAINING ELITE DATA" + ".".repeat(dots);
+            if(loadingRow) {
+                loadingRow.querySelector('td').textContent = text;
+            }
+        }, 500);
+    </script>
+</body></html>

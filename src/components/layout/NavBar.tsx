@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Activity, Gamepad2, LogOut, Trophy, UserCircle } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { Activity, LogOut, Trophy, UserCircle } from "lucide-react";
 import { hasSupabaseEnv } from "@/lib/env";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/cn";
@@ -41,38 +40,32 @@ export function NavBar() {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-arena-950/72 backdrop-blur-xl">
-      <nav className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+    <header className="sticky top-0 z-40 w-full border-b border-white/10 bg-[rgba(8,13,28,0.72)] backdrop-blur-xl shadow-[0_24px_80px_rgba(0,0,0,0.5)]">
+      <nav className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
         <Link href="/" className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-md border border-cyan-300/30 bg-cyan-300/10 text-cyan-200 shadow-glow">
-            <Gamepad2 size={21} />
-          </span>
-          <span>
-            <span className="block text-lg font-black tracking-wide text-white">TypeDuel</span>
-            <span className="hidden text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 sm:block">
-              1v1 typing arena
-            </span>
+          <span className="text-xl font-black italic tracking-tighter text-neon-cyan">
+            TypeDuel
           </span>
         </Link>
 
-        <div className="hidden items-center gap-2 md:flex">
+        <div className="hidden items-center gap-6 md:flex">
           <Link
             href="/match"
-            className="rounded-md px-3 py-2 text-sm font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white"
+            className="label-caps text-xs text-text-muted transition-colors duration-200 hover:text-neon-cyan"
           >
             Arena
           </Link>
           <Link
             href="/leaderboard"
-            className="rounded-md px-3 py-2 text-sm font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white"
+            className="label-caps text-xs text-text-muted transition-colors duration-200 hover:text-neon-cyan"
           >
             Leaderboard
           </Link>
           <Link
             href="/profile"
-            className="rounded-md px-3 py-2 text-sm font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white"
+            className="label-caps text-xs text-text-muted transition-colors duration-200 hover:text-neon-cyan"
           >
-            Profile
+            Training
           </Link>
         </div>
 
@@ -98,25 +91,29 @@ export function NavBar() {
           {signedIn ? (
             <>
               <Link href="/profile" className="md:hidden">
-                <Button variant="secondary" className="h-10 w-10 p-0" aria-label="Profile">
+                <button className="flex h-10 w-10 items-center justify-center rounded-md border border-white/[0.12] bg-white/10 text-white transition hover:border-neon-cyan/50 hover:bg-white/[0.15]">
                   <UserCircle size={18} />
-                </Button>
+                </button>
               </Link>
-              <Button variant="ghost" className="h-10 w-10 p-0" onClick={signOut} aria-label="Sign out">
+              <button
+                onClick={signOut}
+                className="flex h-10 w-10 items-center justify-center rounded-md border border-transparent bg-transparent text-slate-300 transition hover:bg-white/10 hover:text-white"
+                aria-label="Sign out"
+              >
                 <LogOut size={18} />
-              </Button>
+              </button>
             </>
           ) : (
             <>
               <Link href="/leaderboard" className="md:hidden">
-                <Button variant="secondary" className="h-10 w-10 p-0" aria-label="Leaderboard">
+                <button className="flex h-10 w-10 items-center justify-center rounded-md border border-white/[0.12] bg-white/10 text-white transition hover:border-neon-cyan/50 hover:bg-white/[0.15]">
                   <Trophy size={18} />
-                </Button>
+                </button>
               </Link>
               <Link href="/login">
-                <Button variant="secondary" className="min-h-10 px-3">
+                <button className="label-caps inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-white/[0.12] bg-white/10 px-4 py-2 text-xs text-white transition duration-200 hover:border-neon-cyan/50 hover:bg-white/[0.15]">
                   Login
-                </Button>
+                </button>
               </Link>
             </>
           )}

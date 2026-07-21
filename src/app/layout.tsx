@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import "./globals.css";
 import { Providers } from "@/app/providers";
 import { NavBar } from "@/components/layout/NavBar";
+import { MeshBackground } from "@/components/ui/MeshBackground";
 
 export const metadata: Metadata = {
   title: "TypeDuel | Real-Time Typing Battles",
@@ -18,8 +19,9 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Providers>
-          <div className="pointer-events-none fixed inset-0 -z-10 bg-arena-radial" />
-          <div className="arena-grid pointer-events-none fixed inset-0 -z-10 bg-grid-glow opacity-70" />
+          <MeshBackground />
+          <div className="pointer-events-none fixed inset-0 -z-10 arena-grid opacity-20" />
+          <div className="scanline pointer-events-none fixed inset-0 -z-10" />
           <NavBar />
           {children}
         </Providers>
