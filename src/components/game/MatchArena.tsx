@@ -1,6 +1,7 @@
 "use client";
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { Copy, Loader2, LogOut, Radio, Swords, Timer, Users } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { PlayerPanel } from "@/components/game/PlayerPanel";
@@ -77,7 +78,7 @@ export function MatchArena({ autoJoinCode }: { autoJoinCode?: string }) {
 
   const localStats = useMemo(() => {
     if (!match) {
-      return selfStats;
+      return selfStats ?? { typedLength: 0, correctChars: 0, errors: 0, wpm: 0, accuracy: 100, completionPercent: 0, completed: false, suspiciousFlags: [] };
     }
 
     return calculateTypingStats({
@@ -147,16 +148,13 @@ export function MatchArena({ autoJoinCode }: { autoJoinCode?: string }) {
 
   if (!match) {
     return (
-      <main className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-5xl items-center justify-center px-4 py-12 sm:px-6">
-        <section className="glass-panel w-full rounded-lg p-5 sm:p-8">
+      <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-5xl items-center justify-center px-4 py-12 sm:px-6 relative z-[2]">
+        <section className="glass-panel w-full rounded-xl p-5 sm:p-8">
           <div className="mb-8 text-center">
-            <p className="text-sm font-bold uppercase tracking-[0.22em] text-cyan-200">
-              Matchmaking
-            </p>
-            <h1 className="mt-2 text-4xl font-black text-white">Choose your duel</h1>
-            <p className="mx-auto mt-3 max-w-2xl text-slate-300">
-              Quick match pairs two live players. Private rooms generate invite codes for direct
-              battles.
+            <p className="label-caps text-primary-fixed-dim">MATCHMAKING</p>
+            <h1 className="mt-2 font-headline-md text-headline-md text-on-surface">Choose your duel</h1>
+            <p className="mx-auto mt-3 max-w-2xl text-on-surface-variant">
+              Quick match pairs two live players. Private rooms generate invite codes for direct battles.
             </p>
           </div>
 
@@ -164,11 +162,11 @@ export function MatchArena({ autoJoinCode }: { autoJoinCode?: string }) {
             <button
               onClick={joinQuickMatch}
               disabled={!connected}
-              className="rounded-lg border border-cyan-300/20 bg-cyan-300/10 p-5 text-left transition hover:border-cyan-300/50 hover:bg-cyan-300/15 disabled:opacity-50"
+              className="glass-panel rounded-lg border-t-4 border-t-neon-cyan p-5 text-left transition hover:-translate-y-1 disabled:opacity-50"
             >
-              <Swords className="mb-5 text-cyan-200" />
-              <p className="text-xl font-black text-white">Quick Match</p>
-              <p className="mt-2 text-sm leading-6 text-slate-400">
+              <Swords size={24} className="mb-5 text-neon-cyan" />
+              <p className="font-headline-md text-headline-md text-white">Quick Match</p>
+              <p className="mt-2 text-body-md text-on-surface-variant">
                 Queue for a ranked-feeling 1v1 with a synchronized paragraph.
               </p>
             </button>
@@ -176,23 +174,23 @@ export function MatchArena({ autoJoinCode }: { autoJoinCode?: string }) {
             <button
               onClick={createRoom}
               disabled={!connected}
-              className="rounded-lg border border-fuchsia-300/20 bg-fuchsia-300/10 p-5 text-left transition hover:border-fuchsia-300/50 hover:bg-fuchsia-300/15 disabled:opacity-50"
+              className="glass-panel rounded-lg border-t-4 border-t-secondary p-5 text-left transition hover:-translate-y-1 disabled:opacity-50"
             >
-              <Users className="mb-5 text-fuchsia-200" />
-              <p className="text-xl font-black text-white">Private Room</p>
-              <p className="mt-2 text-sm leading-6 text-slate-400">
+              <Users size={24} className="mb-5 text-secondary" />
+              <p className="font-headline-md text-headline-md text-white">Private Room</p>
+              <p className="mt-2 text-body-md text-on-surface-variant">
                 Create a code and invite one opponent into a locked duel.
               </p>
             </button>
 
-            <div className="rounded-lg border border-white/10 bg-white/[0.06] p-5">
-              <Radio className="mb-5 text-emerald-200" />
-              <p className="text-xl font-black text-white">Join Code</p>
+            <div className="glass-panel rounded-lg border-t-4 border-t-tertiary p-5">
+              <Radio size={24} className="mb-5 text-tertiary" />
+              <p className="font-headline-md text-headline-md text-white">Join Code</p>
               <div className="mt-4 flex gap-2">
                 <input
                   value={inviteCode}
                   onChange={(event) => setInviteCode(event.target.value.toUpperCase())}
-                  className="min-h-11 min-w-0 flex-1 rounded-md border border-white/10 bg-arena-950 px-3 text-sm font-bold uppercase tracking-[0.18em] text-white outline-none focus:border-cyan-300/60"
+                  className="min-h-11 min-w-0 flex-1 rounded-lg border border-outline-variant bg-surface-container px-3 text-sm font-bold uppercase tracking-[0.18em] text-white outline-none focus:border-primary-fixed-dim"
                   placeholder="CODE"
                   maxLength={12}
                 />
@@ -203,14 +201,14 @@ export function MatchArena({ autoJoinCode }: { autoJoinCode?: string }) {
             </div>
           </div>
 
-          <div className="mt-6 flex flex-col items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.06] p-4 sm:flex-row">
-            <p className="text-sm font-semibold text-slate-300">
+          <div className="mt-6 flex flex-col items-center justify-between gap-3 glass-panel rounded-lg p-4 sm:flex-row">
+            <p className="text-body-md font-semibold text-on-surface">
               {queueState === "waiting" ? "Searching for an opponent..." : connected ? "Socket online." : "Socket server offline."}
             </p>
             {queueState === "waiting" && (
-              <div className="flex items-center gap-3 text-cyan-100">
+              <div className="flex items-center gap-3 text-primary-fixed-dim">
                 <Loader2 size={18} className="animate-spin" />
-                <span className="text-sm font-bold uppercase tracking-[0.18em]">Queue active</span>
+                <span className="label-caps">Queue active</span>
               </div>
             )}
             {roomCode && (
@@ -220,62 +218,92 @@ export function MatchArena({ autoJoinCode }: { autoJoinCode?: string }) {
               </Button>
             )}
           </div>
-          {error && <p className="mt-4 text-center text-sm font-semibold text-amber-100">{error}</p>}
+          {error && <p className="mt-4 text-center text-sm font-semibold text-error-red">{error}</p>}
         </section>
       </main>
     );
   }
 
   return (
-    <main className="mx-auto max-w-[1500px] px-3 py-5 sm:px-5">
-      <section className="mb-4 grid gap-3 rounded-lg border border-white/10 bg-arena-950/72 p-3 sm:grid-cols-3">
-        <div className="flex items-center gap-3 rounded-md border border-white/10 bg-white/[0.06] px-3 py-2">
-          <Timer size={18} className="text-cyan-200" />
-          <span className="text-sm font-bold text-slate-300">Timer</span>
-          <span className="ml-auto font-mono text-xl font-black text-white">{elapsed}s</span>
+    <>
+      <header className="fixed top-0 left-0 right-0 z-50 h-11 flex items-center justify-between px-6 glass-panel border-x-0 rounded-none">
+        <div className="flex items-center gap-4">
+          <Link href="/match">
+            <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-glass-border hover:bg-surface-bright transition-all active:scale-95">
+              <span className="label-caps">BACK TO LOBBY</span>
+            </button>
+          </Link>
+          <div className="h-6 w-px bg-glass-border" />
+          <div className="label-caps text-outline tracking-widest">MATCH: #{match.roomCode ?? "QUICK"}</div>
         </div>
-        <div className="flex items-center justify-center rounded-md border border-cyan-300/20 bg-cyan-300/10 px-3 py-2 text-sm font-black uppercase tracking-[0.2em] text-cyan-100">
-          {countdownMs > 0 ? `Starts in ${Math.ceil(countdownMs / 1000)}` : started ? "Live duel" : "Match found"}
+        <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-8">
+          <div className="flex flex-col items-center">
+            <span className="label-caps text-outline">TIME REMAINING</span>
+            <span className="stats-value text-primary">
+              {countdownMs > 0
+                ? `00:${String(Math.ceil(countdownMs / 1000)).padStart(2, "0")}`
+                : `${String(Math.floor(elapsed / 60)).padStart(2, "0")}:${String(elapsed % 60).padStart(2, "0")}`}
+            </span>
+          </div>
         </div>
-        <div className="flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.06] px-3 py-2">
-          <span className="text-sm font-bold text-slate-300">Room</span>
-          <span className="ml-auto font-mono text-sm font-black text-white">
-            {match.roomCode ?? "QUICK"}
-          </span>
-          {match.roomCode && (
-            <Button variant="ghost" className="h-8 w-8 p-0" onClick={copyRoom} aria-label="Copy room code">
-              <Copy size={15} />
-            </Button>
-          )}
+        <div className="flex items-center gap-8">
+          <div className="text-right">
+            <span className="label-caps text-outline block">CURRENT SPEED</span>
+            <span className="stats-value text-primary-fixed-dim">
+              {Math.round(localStats.wpm)} <small className="label-caps opacity-60">WPM</small>
+            </span>
+          </div>
         </div>
-      </section>
+      </header>
 
-      <section className="grid gap-4 lg:grid-cols-[260px_minmax(0,1fr)_260px]">
-        <PlayerPanel player={currentPlayer} stats={localStats} side="left" active={started} />
-
-        <div className="glass-panel rounded-lg p-4 sm:p-5">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-500">
-                Shared paragraph
-              </p>
-              <h1 className="mt-1 text-2xl font-black text-white">
-                {match.paragraph.difficulty} · {match.paragraph.category}
-              </h1>
-            </div>
+      <main className="relative h-screen pt-11 flex items-center justify-center gap-12 max-w-[1400px] mx-auto px-8 z-[2]">
+        <aside className="hidden lg:flex flex-col items-center h-[70%] relative gap-4">
+          <span className="label-caps text-primary tracking-tighter">YOU</span>
+          <div className="w-2 h-full bg-surface-bright rounded-full relative overflow-visible">
             <div
-              className={cn(
-                "rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.16em]",
-                started
-                  ? "border-emerald-300/25 bg-emerald-300/10 text-emerald-100"
-                  : "border-amber-300/25 bg-amber-300/10 text-amber-100"
-              )}
-            >
-              {started ? "Synced" : "Arming"}
+              className="absolute left-1/2 -translate-x-1/2 w-6 h-6 bg-primary-container rounded-sm rotate-45 border-2 border-primary shadow-[0_0_15px_#21e6ff] transition-all duration-300"
+              style={{ bottom: `${Math.round(localStats.completionPercent)}%` }}
+            />
+            <div className="absolute -left-12 top-1/2 -translate-y-1/2 stats-value text-primary opacity-50">
+              {Math.round(localStats.completionPercent)}%
+            </div>
+          </div>
+          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+            <span className="text-primary text-sm font-bold">{currentPlayer?.name?.charAt(0) ?? "Y"}</span>
+          </div>
+        </aside>
+
+        <section className="flex-1 flex flex-col gap-4 items-center z-10">
+          <div className="w-full flex justify-between gap-6">
+            <div className="glass-panel rounded-xl px-6 py-4 flex-1 flex flex-col items-start shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-1 h-full bg-primary-container" />
+              <span className="label-caps text-outline mb-2">ACCURACY</span>
+              <div className="flex items-baseline gap-2">
+                <span className="stats-value text-on-surface">{Math.round(localStats.accuracy)}</span>
+                <span className="label-caps text-outline">%</span>
+              </div>
+              <div className="mt-4 w-full h-2 bg-surface-bright rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-neon-cyan shadow-[0_0_8px_#21e6ff] rounded-full transition-all duration-200"
+                  style={{ width: `${Math.round(localStats.accuracy)}%` }}
+                />
+              </div>
+            </div>
+            <div className="glass-panel rounded-xl px-6 py-4 flex-1 flex flex-col items-start shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-1 h-full bg-secondary" />
+              <span className="label-caps text-outline mb-2">ERRORS</span>
+              <div className="flex items-baseline gap-2">
+                <span className="stats-value text-on-surface">{localStats.errors}</span>
+                <span className="label-caps text-secondary-fixed">ERR</span>
+              </div>
             </div>
           </div>
 
-          <ParagraphRenderer paragraph={match.paragraph.body} typed={typed} />
+          <div className="glass-panel rounded-full w-full p-10 shadow-[0_24px_80px_rgba(0,0,0,0.5)] border-glass-border" id="typing-container">
+            <div className="relative font-body-lg text-body-lg leading-relaxed select-none">
+              <ParagraphRenderer paragraph={match.paragraph.body} typed={typed} />
+            </div>
+          </div>
 
           <textarea
             ref={inputRef}
@@ -294,30 +322,57 @@ export function MatchArena({ autoJoinCode }: { autoJoinCode?: string }) {
             autoCorrect="off"
             spellCheck={false}
             disabled={!started || Boolean(summary)}
-            className="mt-4 min-h-28 w-full resize-none rounded-lg border border-white/10 bg-black/30 p-4 font-mono text-lg leading-8 text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-300/60 disabled:cursor-not-allowed disabled:opacity-60"
+            className="sr-only"
             placeholder={started ? "" : "Get ready..."}
             aria-label="Typing input"
           />
 
-          {error && <p className="mt-3 text-sm font-semibold text-amber-100">{error}</p>}
+          <div className="flex gap-4 mt-2">
+            <span className="label-caps text-outline">
+              PRESS <kbd className="px-2 py-1 bg-surface-bright rounded text-on-surface border border-glass-border text-xs">ESC</kbd> TO PAUSE
+            </span>
+            <span className="text-outline/30">•</span>
+            <span className="label-caps text-outline">AUTO-REFOCUS ENABLED</span>
+          </div>
+        </section>
 
-          <div className="mt-4 flex justify-center">
-            <Button variant="danger" onClick={leaveMatch}>
-              <LogOut size={18} />
-              Leave Match
-            </Button>
+        <aside className="hidden lg:flex flex-col items-center h-[70%] relative gap-4">
+          <span className="label-caps text-secondary tracking-tighter">ENEMY</span>
+          <div className="w-2 h-full bg-surface-bright rounded-full relative overflow-visible">
+            <div
+              className="absolute left-1/2 -translate-x-1/2 w-6 h-6 bg-secondary-container rounded-sm rotate-45 border-2 border-secondary shadow-[0_0_15px_#ffade3] transition-all duration-300"
+              style={{ bottom: `${Math.round(opponentUpdate?.stats?.completionPercent ?? 0)}%` }}
+            />
+            <div className="absolute -right-12 top-1/2 -translate-y-1/2 stats-value text-secondary opacity-50">
+              {Math.round(opponentUpdate?.stats?.completionPercent ?? 0)}%
+            </div>
+          </div>
+          <div className="w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center">
+            <span className="text-secondary text-sm font-bold">{opponent?.name?.charAt(0) ?? "E"}</span>
+          </div>
+        </aside>
+      </main>
+
+      <footer className="fixed bottom-0 left-0 right-0 h-11 flex items-center justify-center px-8 pointer-events-none z-[2]">
+        <div className="glass-panel px-6 h-10 rounded-t-xl border-b-0 flex items-center gap-6 pointer-events-auto">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-tertiary shadow-[0_0_5px_#6ffbbe]" />
+            <span className="label-caps text-on-surface">CONNECTED</span>
+          </div>
+          <div className="h-4 w-px bg-glass-border" />
+          <div className="flex items-center gap-2">
+            <span className="label-caps text-outline">SERVER: NA-EAST</span>
           </div>
         </div>
+      </footer>
 
-        <PlayerPanel
-          player={opponent}
-          stats={opponentUpdate?.stats}
-          side="right"
-          active={Boolean(opponentUpdate?.isTyping && started)}
-        />
-      </section>
+      {error && (
+        <div className="fixed bottom-16 left-1/2 -translate-x-1/2 z-50 glass-panel rounded-lg px-6 py-3">
+          <p className="text-sm font-semibold text-error-red">{error}</p>
+        </div>
+      )}
 
       <MatchSummaryModal summary={summary} onClose={() => setSummary(undefined)} />
-    </main>
+    </>
   );
 }
