@@ -7,6 +7,7 @@ import {
   ArrowRight,
   Shield,
   Swords,
+  Target,
   Trophy,
   UserCircle
 } from "lucide-react";
@@ -116,6 +117,12 @@ export function LandingPage() {
             <Link href="/leaderboard">
               <button className="label-caps inline-flex items-center justify-center gap-2 border border-neon-cyan/50 text-neon-cyan px-10 py-4 text-lg font-bold glass-panel hover:bg-neon-cyan/10 transition-all duration-200 active:scale-95 w-full sm:w-auto">
                 VIEW LEADERBOARDS
+              </button>
+            </Link>
+            <Link href="/playground">
+              <button className="label-caps inline-flex items-center justify-center gap-2 border border-neon-green/50 text-neon-green px-10 py-4 text-lg font-bold glass-panel hover:bg-neon-green/10 transition-all duration-200 active:scale-95 w-full sm:w-auto">
+                <Target size={18} />
+                PRACTICE SOLO
               </button>
             </Link>
           </div>
