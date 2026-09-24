@@ -56,6 +56,12 @@ export function NavBar() {
             Arena
           </Link>
           <Link
+            href="/playground"
+            className="label-caps text-xs text-text-muted transition-colors duration-200 hover:text-neon-cyan"
+          >
+            Playground
+          </Link>
+          <Link
             href="/leaderboard"
             className="label-caps text-xs text-text-muted transition-colors duration-200 hover:text-neon-cyan"
           >
