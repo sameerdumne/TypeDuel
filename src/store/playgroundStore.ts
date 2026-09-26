@@ -28,6 +28,19 @@ type PlaygroundStore = {
   resetPlayground: () => void;
 };
 
+function matchingPool(
+  pool: SharedParagraph[],
+  category?: ParagraphCategory,
+  difficulty?: Difficulty
+) {
+  const matching = pool.filter((candidate) => {
+    const categoryMatches = category ? candidate.category === category : true;
+    const difficultyMatches = difficulty ? candidate.difficulty === difficulty : true;
+    return categoryMatches && difficultyMatches;
+  });
+  return matching.length ? matching : pool;
+}
+
 function pickParagraph(
   pool: SharedParagraph[],
   category?: ParagraphCategory,
@@ -47,25 +60,17 @@ function pickDifferentParagraph(
   category?: ParagraphCategory,
   difficulty?: Difficulty
 ) {
-  const matching = pool.filter((candidate) => {
-    const categoryMatches = category ? candidate.category === category : true;
-    const difficultyMatches = difficulty ? candidate.difficulty === difficulty : true;
-    return categoryMatches && difficultyMatches;
-  });
-  const group = matching.length ? matching : pool;
-  const picked = selectParagraph({
-    seed: makeMatchSeed("playground"),
-    pool: group,
-    category,
-    difficulty
-  });
-
-  if (group.length > 1 && current && picked.id === current.id) {
-    const index = group.findIndex((candidate) => candidate.id === picked.id);
-    return group[(index + 1) % group.length];
+  const group = matchingPool(pool, category, difficulty);
+  if (group.length === 0) {
+    return current;
+  }
+  if (group.length === 1) {
+    return group[0];
   }
 
-  return picked;
+  const alternatives = current ? group.filter((candidate) => candidate.id !== current.id) : group;
+  const options = alternatives.length ? alternatives : group;
+  return options[Math.floor(Math.random() * options.length)];
 }
 
 export const usePlaygroundStore = create<PlaygroundStore>((set, get) => ({
