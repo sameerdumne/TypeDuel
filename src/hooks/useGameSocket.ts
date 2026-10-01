@@ -13,6 +13,8 @@ import type {
   MatchFoundPayload,
   OpponentUpdatePayload,
   PublicPlayer,
+  RematchDeclinedPayload,
+  RematchRequestedPayload,
   TypingStats,
   TypingUpdatePayload
 } from "@/types/game";
@@ -32,6 +34,8 @@ export function useSocketBoot() {
   const setOpponent = useMatchStore((state) => state.setOpponent);
   const setSummary = useMatchStore((state) => state.setSummary);
   const setError = useMatchStore((state) => state.setError);
+  const setRematchState = useMatchStore((state) => state.setRematchState);
+  const clearRematch = useMatchStore((state) => state.clearRematch);
 
   useEffect(() => {
     const socket = io(env.socketUrl, {
@@ -108,6 +112,29 @@ export function useSocketBoot() {
       setStarted(false);
     });
     socket.on("match:error", (message: string) => setError(message));
+    socket.on("rematch:requested", (payload: RematchRequestedPayload) => {
+      setRematchState({
+        rematchStatus: "incoming",
+        rematchRequester: payload.requester,
+        rematchExpiresAt: Date.now() + payload.timeoutMs,
+        rematchNotice: undefined,
+        rematchDeclineReason: undefined
+      });
+    });
+    socket.on("rematch:start", () => {
+      clearRematch();
+      setError(undefined);
+    });
+    socket.on("rematch:declined", (payload: RematchDeclinedPayload) => {
+      setRematchState({
+        rematchStatus: "idle",
+        rematchRequester: undefined,
+        rematchExpiresAt: undefined,
+        rematchDeclineReason: payload.reason,
+        rematchNotice: payload.message,
+        rematchAvailable: payload.reason !== "opponent_left"
+      });
+    });
 
     return () => {
       socket.disconnect();
@@ -115,6 +142,7 @@ export function useSocketBoot() {
     };
   }, [
     router,
+    clearRematch,
     setConnected,
     setCountdownMs,
     setError,
@@ -123,6 +151,7 @@ export function useSocketBoot() {
     setOpponent,
     setPlayer,
     setQueueState,
+    setRematchState,
     setRoomCode,
     setSelfStats,
     setSocket,
@@ -135,6 +164,8 @@ export function useGameActions() {
   const socket = useMatchStore((state) => state.socket);
   const match = useMatchStore((state) => state.match);
   const setQueueState = useMatchStore((state) => state.setQueueState);
+  const setRematchState = useMatchStore((state) => state.setRematchState);
+  const clearRematch = useMatchStore((state) => state.clearRematch);
   const resetMatch = useMatchStore((state) => state.resetMatch);
 
   return useMemo(
@@ -170,8 +201,23 @@ export function useGameActions() {
       leaveMatch() {
         socket?.emit("match:leave");
         resetMatch();
+      },
+      requestRematch(matchId: string) {
+        setRematchState({
+          rematchStatus: "pending",
+          rematchNotice: undefined,
+          rematchDeclineReason: undefined
+        });
+        socket?.emit("rematch:request", { matchId });
+      },
+      acceptRematch(matchId: string) {
+        socket?.emit("rematch:accepted", { matchId });
+      },
+      declineRematch(matchId: string) {
+        clearRematch();
+        socket?.emit("rematch:decline", { matchId });
       }
     }),
-    [match, resetMatch, setQueueState, socket]
+    [clearRematch, match, resetMatch, setQueueState, setRematchState, socket]
   );
 }

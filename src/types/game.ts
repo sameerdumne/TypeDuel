@@ -86,6 +86,33 @@ export type MatchEndedPayload = {
   reason: string;
   results: MatchResultSummary[];
   endedAt: number;
+  rematchAvailable?: boolean;
+};
+
+export type MatchSource = "queue" | "room" | "rematch";
+
+export type RematchDeclineReason = "declined" | "timeout" | "opponent_left";
+
+export type RematchRequestedPayload = {
+  matchId: string;
+  requester: PublicPlayer;
+  timeoutMs: number;
+};
+
+export type RematchAcceptedPayload = {
+  matchId: string;
+};
+
+export type RematchStartPayload = {
+  previousMatchId: string;
+  matchId: string;
+  roomCode?: string;
+};
+
+export type RematchDeclinedPayload = {
+  matchId: string;
+  reason: RematchDeclineReason;
+  message: string;
 };
 
 export type LiveStatsPayload = {

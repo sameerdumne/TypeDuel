@@ -7,11 +7,14 @@ import type {
   MatchFoundPayload,
   OpponentUpdatePayload,
   PublicPlayer,
+  RematchDeclineReason,
   TypingStats
 } from "@/types/game";
 import { create } from "zustand";
 
 type QueueState = "idle" | "waiting" | "matched";
+
+export type RematchStatus = "idle" | "pending" | "incoming";
 
 type MatchStore = {
   socket?: Socket;
@@ -28,6 +31,12 @@ type MatchStore = {
   opponent?: OpponentUpdatePayload;
   summary?: MatchEndedPayload;
   error?: string;
+  rematchStatus: RematchStatus;
+  rematchAvailable: boolean;
+  rematchRequester?: PublicPlayer;
+  rematchDeclineReason?: RematchDeclineReason;
+  rematchNotice?: string;
+  rematchExpiresAt?: number;
   setSocket: (socket?: Socket) => void;
   setConnected: (connected: boolean) => void;
   setPlayer: (player?: PublicPlayer) => void;
@@ -42,6 +51,13 @@ type MatchStore = {
   setOpponent: (opponent?: OpponentUpdatePayload) => void;
   setSummary: (summary?: MatchEndedPayload) => void;
   setError: (error?: string) => void;
+  setRematchState: (state: Partial<
+    Pick<
+      MatchStore,
+      "rematchStatus" | "rematchAvailable" | "rematchRequester" | "rematchDeclineReason" | "rematchNotice" | "rematchExpiresAt"
+    >
+  >) => void;
+  clearRematch: () => void;
   resetMatch: () => void;
 };
 
@@ -56,6 +72,8 @@ export const useMatchStore = create<MatchStore>((set) => ({
   countdownMs: 0,
   started: false,
   typed: "",
+  rematchStatus: "idle",
+  rematchAvailable: false,
   setSocket: (socket) => set({ socket }),
   setConnected: (connected) => set({ connected }),
   setPlayer: (player) => set({ player }),
@@ -72,15 +90,38 @@ export const useMatchStore = create<MatchStore>((set) => ({
       summary: undefined,
       error: undefined,
       started: false,
-      countdownMs: match ? Math.max(match.startsAt - match.serverNow, 0) : 0
+      countdownMs: match ? Math.max(match.startsAt - match.serverNow, 0) : 0,
+      rematchStatus: "idle",
+      rematchRequester: undefined,
+      rematchDeclineReason: undefined,
+      rematchNotice: undefined,
+      rematchExpiresAt: undefined
     }),
   setCountdownMs: (countdownMs) => set({ countdownMs }),
   setStarted: (started) => set({ started }),
   setTyped: (typed) => set({ typed }),
   setSelfStats: (selfStats) => set({ selfStats }),
   setOpponent: (opponent) => set({ opponent }),
-  setSummary: (summary) => set({ summary }),
+  setSummary: (summary) =>
+    set({
+      summary,
+      rematchStatus: "idle",
+      rematchRequester: undefined,
+      rematchDeclineReason: undefined,
+      rematchNotice: undefined,
+      rematchExpiresAt: undefined,
+      rematchAvailable: summary ? Boolean(summary.rematchAvailable) : false
+    }),
   setError: (error) => set({ error }),
+  setRematchState: (state) => set(state),
+  clearRematch: () =>
+    set({
+      rematchStatus: "idle",
+      rematchRequester: undefined,
+      rematchDeclineReason: undefined,
+      rematchNotice: undefined,
+      rematchExpiresAt: undefined
+    }),
   resetMatch: () =>
     set({
       match: undefined,
@@ -91,6 +132,12 @@ export const useMatchStore = create<MatchStore>((set) => ({
       opponent: undefined,
       summary: undefined,
       queueState: "idle",
-      error: undefined
+      error: undefined,
+      rematchStatus: "idle",
+      rematchAvailable: false,
+      rematchRequester: undefined,
+      rematchDeclineReason: undefined,
+      rematchNotice: undefined,
+      rematchExpiresAt: undefined
     })
 }));
