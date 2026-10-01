@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import confetti from "canvas-confetti";
-import { Medal, Sparkles, Trophy, X } from "lucide-react";
+import { Loader2, Medal, Repeat2, Sparkles, Trophy, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { ProgressBar } from "@/components/ui/ProgressBar";
+import { useGameActions } from "@/hooks/useGameSocket";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
 import { cn } from "@/lib/cn";
 import { useMatchStore } from "@/store/useMatchStore";
-import type { MatchEndedPayload } from "@/types/game";
+import type { MatchEndedPayload, PublicPlayer } from "@/types/game";
 
 export function MatchSummaryModal({
   summary,
@@ -18,9 +19,16 @@ export function MatchSummaryModal({
   onClose: () => void;
 }) {
   const player = useMatchStore((state) => state.player);
+  const rematchStatus = useMatchStore((state) => state.rematchStatus);
+  const rematchAvailable = useMatchStore((state) => state.rematchAvailable);
+  const rematchRequester = useMatchStore((state) => state.rematchRequester);
+  const rematchNotice = useMatchStore((state) => state.rematchNotice);
+  const rematchExpiresAt = useMatchStore((state) => state.rematchExpiresAt);
   const { victory } = useSoundEffects();
+  const { requestRematch, acceptRematch, declineRematch } = useGameActions();
   const myResult = summary?.results.find((result) => result.player.socketId === player?.socketId);
   const won = Boolean(myResult?.won);
+  const rematchCountdown = useRematchCountdown(rematchExpiresAt);
 
   useEffect(() => {
     if (!summary || !won) {
@@ -83,6 +91,17 @@ export function MatchSummaryModal({
           </div>
         </div>
 
+        <RematchPanel
+          rematchStatus={rematchStatus}
+          rematchAvailable={rematchAvailable}
+          rematchRequester={rematchRequester}
+          rematchNotice={rematchNotice}
+          rematchCountdown={rematchCountdown}
+          onRequest={() => requestRematch(summary.matchId)}
+          onAccept={() => acceptRematch(summary.matchId)}
+          onDecline={() => declineRematch(summary.matchId)}
+        />
+
         <div className="mt-5 space-y-2">
           {summary.results.map((result) => (
             <div
@@ -109,6 +128,96 @@ export function MatchSummaryModal({
       </section>
     </div>
   );
+}
+
+function RematchPanel({
+  rematchStatus,
+  rematchAvailable,
+  rematchRequester,
+  rematchNotice,
+  rematchCountdown,
+  onRequest,
+  onAccept,
+  onDecline
+}: {
+  rematchStatus: "idle" | "pending" | "incoming";
+  rematchAvailable: boolean;
+  rematchRequester?: PublicPlayer;
+  rematchNotice?: string;
+  rematchCountdown?: number;
+  onRequest: () => void;
+  onAccept: () => void;
+  onDecline: () => void;
+}) {
+  return (
+    <div className="mt-5 rounded-lg border border-white/10 bg-white/[0.06] p-4">
+      {rematchStatus === "incoming" ? (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-white">
+              {rematchRequester?.name ?? "Your opponent"} wants a rematch
+            </p>
+            <p className="text-xs font-semibold text-slate-400">
+              {rematchCountdown !== undefined
+                ? `Responds in ${rematchCountdown}s`
+                : "Respond before the request expires."}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="ghost" onClick={onDecline}>
+              Decline
+            </Button>
+            <Button variant="primary" onClick={onAccept}>
+              <Repeat2 size={16} />
+              Accept
+            </Button>
+          </div>
+        </div>
+      ) : rematchStatus === "pending" ? (
+        <div className="flex items-center gap-3">
+          <Loader2 size={18} className="animate-spin text-cyan-200" />
+          <p className="text-sm font-bold text-white">
+            Waiting for opponent
+            {rematchCountdown !== undefined ? ` (${rematchCountdown}s)` : "..."}
+          </p>
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm font-bold text-slate-300">
+            {rematchNotice ?? (rematchAvailable ? "Run it back?" : "Opponent left the arena.")}
+          </p>
+          {rematchAvailable && (
+            <Button variant="secondary" onClick={onRequest}>
+              <Repeat2 size={16} />
+              Rematch
+            </Button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function useRematchCountdown(expiresAt?: number) {
+  const [remaining, setRemaining] = useState<number | undefined>(expiresAt ? 0 : undefined);
+
+  useEffect(() => {
+    if (!expiresAt) {
+      setRemaining(undefined);
+      return;
+    }
+
+    const tick = () => {
+      const next = Math.max(Math.ceil((expiresAt - Date.now()) / 1000), 0);
+      setRemaining(next);
+    };
+
+    tick();
+    const interval = window.setInterval(tick, 250);
+    return () => window.clearInterval(interval);
+  }, [expiresAt]);
+
+  return remaining;
 }
 
 function SummaryMetric({ label, value }: { label: string; value: string | number }) {

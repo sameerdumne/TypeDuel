@@ -6,7 +6,9 @@ import type {
   MatchEndedPayload,
   MatchMode,
   MatchResultSummary,
+  MatchSource,
   PublicPlayer,
+  RematchDeclineReason,
   SharedParagraph,
   TypingUpdatePayload
 } from "../src/types/game";
@@ -49,6 +51,7 @@ type MatchState = {
   id: string;
   dbMatchPersisted: boolean;
   mode: MatchMode;
+  source: MatchSource;
   roomCode?: string;
   paragraph: SharedParagraph;
   seed: string;
@@ -59,11 +62,24 @@ type MatchState = {
   endTimer?: NodeJS.Timeout;
 };
 
+type RematchRequest = {
+  matchId: string;
+  mode: MatchMode;
+  roomCode?: string;
+  socketIds: string[];
+  requesterId?: string;
+  status: "open" | "requested" | "accepted" | "declined" | "timed_out";
+  createdAt: number;
+  timer?: NodeJS.Timeout;
+};
+
 const MATCH_ROOM_PREFIX = "match:";
 const COUNTDOWN_MS = 5_000;
 const FINISH_GRACE_MS = 2_000;
 const MAX_MATCH_MS = 180_000;
 const RECONNECT_GRACE_MS = 12_000;
+const REMATCH_TIMEOUT_MS = 15_000;
+const REMATCH_ENTRY_TTL_MS = 10 * 60_000;
 
 export class MatchmakingEngine {
   private readonly io: Server;
@@ -74,6 +90,7 @@ export class MatchmakingEngine {
   private readonly quickQueue: string[] = [];
   private readonly privateRooms = new Map<string, PrivateRoom>();
   private readonly matches = new Map<string, MatchState>();
+  private readonly rematchRequests = new Map<string, RematchRequest>();
   private paragraphPool: SharedParagraph[] = [];
 
   constructor(io: Server) {
@@ -153,7 +170,7 @@ export class MatchmakingEngine {
 
       room.status = "playing";
       socket.emit("room:joined", { code: roomCode });
-      await this.createMatch([room.hostSocketId, socket.id], "private", roomCode);
+      await this.createMatch([room.hostSocketId, socket.id], "private", roomCode, "room");
       this.emitLiveStats();
     });
 
@@ -169,6 +186,18 @@ export class MatchmakingEngine {
 
     socket.on("typing:update", (payload: TypingUpdatePayload) => {
       this.handleTypingUpdate(socket, payload);
+    });
+
+    socket.on("rematch:request", ({ matchId }: { matchId?: string } = {}) => {
+      void this.handleRematchRequest(socket, String(matchId ?? ""));
+    });
+
+    socket.on("rematch:accepted", ({ matchId }: { matchId?: string } = {}) => {
+      void this.handleRematchAccepted(socket, String(matchId ?? ""));
+    });
+
+    socket.on("rematch:decline", ({ matchId }: { matchId?: string } = {}) => {
+      this.handleRematchDecline(socket, String(matchId ?? ""));
     });
 
     socket.on("match:leave", () => {
@@ -235,10 +264,15 @@ export class MatchmakingEngine {
     }
   }
 
-  private async createMatch(socketIds: string[], mode: MatchMode, roomCode?: string) {
+  private async createMatch(
+    socketIds: string[],
+    mode: MatchMode,
+    roomCode?: string,
+    source: MatchSource = "queue"
+  ) {
     const players = socketIds.map((socketId) => this.players.get(socketId)).filter(Boolean);
     if (players.length !== 2) {
-      return;
+      return undefined;
     }
 
     const seed = makeMatchSeed(mode);
@@ -275,6 +309,7 @@ export class MatchmakingEngine {
       id,
       dbMatchPersisted: false,
       mode,
+      source,
       roomCode,
       paragraph,
       seed,
@@ -318,6 +353,8 @@ export class MatchmakingEngine {
         this.endMatch(match, "Time limit reached.");
       }
     }, COUNTDOWN_MS + MAX_MATCH_MS).unref();
+
+    return match;
   }
 
   private runCountdown(match: MatchState) {
@@ -407,6 +444,7 @@ export class MatchmakingEngine {
     const match = matchId ? this.matches.get(matchId) : null;
 
     if (!match || match.status === "completed" || match.status === "abandoned") {
+      this.cancelRematchesForSocket(socketId, "opponent_left");
       return;
     }
 
@@ -426,6 +464,7 @@ export class MatchmakingEngine {
     const matchId = this.playerMatch.get(socketId);
 
     this.players.delete(socketId);
+    this.cancelRematchesForSocket(socketId, "opponent_left");
 
     if (!matchId) {
       if (key) {
@@ -552,12 +591,15 @@ export class MatchmakingEngine {
       };
     });
 
+    const rematchAvailable = this.registerRematchEntry(match, states);
+
     const payload: MatchEndedPayload = {
       matchId: match.id,
       winnerSocketId: winner?.player.socketId,
       reason,
       results,
-      endedAt: Date.now()
+      endedAt: Date.now(),
+      rematchAvailable
     };
 
     this.io.to(`${MATCH_ROOM_PREFIX}${match.id}`).emit("match:ended", payload);
@@ -572,6 +614,186 @@ export class MatchmakingEngine {
 
     this.matches.delete(match.id);
     this.emitLiveStats();
+  }
+
+  private registerRematchEntry(match: MatchState, states: MatchPlayerState[]) {
+    const socketIds = states.map((state) => state.player.socketId);
+    const bothConnected = socketIds.every((socketId) => this.players.has(socketId));
+
+    this.rematchRequests.set(match.id, {
+      matchId: match.id,
+      mode: match.mode,
+      roomCode: match.roomCode,
+      socketIds,
+      status: "open",
+      createdAt: Date.now()
+    });
+
+    return bothConnected;
+  }
+
+  private async handleRematchRequest(socket: Socket, matchId: string) {
+    const request = this.rematchRequests.get(matchId);
+
+    if (!request || !request.socketIds.includes(socket.id)) {
+      socket.emit("match:error", "That match is no longer available for a rematch.");
+      return;
+    }
+
+    if (request.status === "requested" || request.status === "accepted") {
+      return;
+    }
+
+    const missing = this.missingRematchSockets(request);
+    if (missing) {
+      this.declineRematch(request, "opponent_left", missing.socketId);
+      return;
+    }
+
+    request.status = "requested";
+    request.requesterId = socket.id;
+
+    const timer = setTimeout(() => {
+      if (request.status !== "requested") {
+        return;
+      }
+
+      request.timer = undefined;
+      this.declineRematch(request, "timeout", undefined);
+    }, REMATCH_TIMEOUT_MS);
+    timer.unref();
+    request.timer = timer;
+
+    this.emitToRematchOpponent(request, "rematch:requested", {
+      matchId: request.matchId,
+      requester: this.players.get(socket.id) as PublicPlayer,
+      timeoutMs: REMATCH_TIMEOUT_MS
+    });
+    this.emitLiveStats();
+  }
+
+  private async handleRematchAccepted(socket: Socket, matchId: string) {
+    const request = this.rematchRequests.get(matchId);
+
+    if (!request || !request.socketIds.includes(socket.id)) {
+      socket.emit("match:error", "That match is no longer available for a rematch.");
+      return;
+    }
+
+    if (request.status !== "requested" || !request.requesterId) {
+      return;
+    }
+
+    if (request.requesterId === socket.id) {
+      return;
+    }
+
+    if (request.timer) {
+      clearTimeout(request.timer);
+      request.timer = undefined;
+    }
+
+    const missing = this.missingRematchSockets(request);
+    if (missing) {
+      this.declineRematch(request, "opponent_left", missing.socketId);
+      return;
+    }
+
+    request.status = "accepted";
+    const previousMatchId = request.matchId;
+    this.rematchRequests.delete(previousMatchId);
+
+    const match = await this.createMatch(
+      [...request.socketIds],
+      request.mode,
+      request.roomCode,
+      "rematch"
+    );
+
+    if (!match) {
+      this.io.to(request.socketIds).emit("rematch:declined", {
+        matchId: previousMatchId,
+        reason: "opponent_left",
+        message: "Rematch could not start."
+      });
+      return;
+    }
+
+    this.io.to(request.socketIds).emit("rematch:start", {
+      previousMatchId,
+      matchId: match.id,
+      roomCode: match.roomCode
+    });
+    this.emitLiveStats();
+  }
+
+  private handleRematchDecline(socket: Socket, matchId: string) {
+    const request = this.rematchRequests.get(matchId);
+
+    if (!request || !request.socketIds.includes(socket.id)) {
+      return;
+    }
+
+    if (request.status !== "requested" || request.requesterId === socket.id) {
+      return;
+    }
+
+    this.declineRematch(request, "declined", socket.id);
+  }
+
+  private declineRematch(
+    request: RematchRequest,
+    reason: RematchDeclineReason,
+    excludeSocketId?: string
+  ) {
+    if (request.timer) {
+      clearTimeout(request.timer);
+      request.timer = undefined;
+    }
+
+    request.status = reason === "timeout" ? "timed_out" : "declined";
+    const requesterId = request.requesterId;
+
+    for (const socketId of request.socketIds) {
+      if (socketId === excludeSocketId || !this.io.sockets.sockets.has(socketId)) {
+        continue;
+      }
+
+      this.io.to(socketId).emit("rematch:declined", {
+        matchId: request.matchId,
+        reason,
+        message: rematchDeclineMessage(reason, socketId === requesterId)
+      });
+    }
+
+    this.emitLiveStats();
+  }
+
+  private cancelRematchesForSocket(socketId: string, reason: RematchDeclineReason) {
+    for (const request of this.rematchRequests.values()) {
+      if (!request.socketIds.includes(socketId)) {
+        continue;
+      }
+
+      this.declineRematch(request, reason, socketId);
+      this.rematchRequests.delete(request.matchId);
+    }
+  }
+
+  private missingRematchSockets(request: RematchRequest) {
+    const socketId = request.socketIds.find(
+      (candidate) => !this.players.has(candidate) || !this.io.sockets.sockets.has(candidate)
+    );
+    return socketId ? { socketId } : null;
+  }
+
+  private emitToRematchOpponent(request: RematchRequest, event: string, payload: unknown) {
+    const opponentId = request.socketIds.find((socketId) => socketId !== request.requesterId);
+    if (!opponentId) {
+      return;
+    }
+
+    this.io.to(opponentId).emit(event, payload);
   }
 
   private emitLiveStats() {
@@ -600,6 +822,20 @@ export class MatchmakingEngine {
         room.status = "closed";
         this.privateRooms.delete(code);
       }
+    }
+
+    const rematchCutoff = Date.now() - REMATCH_ENTRY_TTL_MS;
+    for (const [matchId, request] of this.rematchRequests) {
+      if (request.status === "requested" || request.createdAt > rematchCutoff) {
+        continue;
+      }
+
+      if (request.timer) {
+        clearTimeout(request.timer);
+        request.timer = undefined;
+      }
+
+      this.rematchRequests.delete(matchId);
     }
   }
 
@@ -736,4 +972,16 @@ function determineWinner(states: MatchPlayerState[]) {
 
 function identityKey(player: PublicPlayer) {
   return player.userId ? `user:${player.userId}` : `guest:${player.guestId}`;
+}
+
+function rematchDeclineMessage(reason: RematchDeclineReason, forRequester: boolean) {
+  if (reason === "timeout") {
+    return forRequester ? "Request timed out." : "Opponent request expired.";
+  }
+
+  if (reason === "opponent_left") {
+    return "Opponent left the arena.";
+  }
+
+  return forRequester ? "Opponent declined." : "Rematch declined.";
 }

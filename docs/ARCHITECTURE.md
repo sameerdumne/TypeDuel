@@ -17,6 +17,7 @@
 7. Clients send throttled `typing:update` payloads. The server recalculates progress, WPM, accuracy, and completion.
 8. The match ends when both players finish, a first-finisher grace period expires, the time limit is hit, or a player leaves.
 9. The server determines the winner and persists `matches` and `match_results`, then updates `users` and `rankings`.
+10. While both sockets remain connected, either player may offer a rematch with `rematch:request`. The server holds the request in memory against the finished match, and on `rematch:accepted` it re-enters the same match-creation path with a fresh seed, paragraph, and countdown. Unanswered or abandoned requests expire with `rematch:declined`.
 
 ## Winner Rules
 
@@ -48,6 +49,9 @@ Client emits:
 - `room:join`: `{ code }`
 - `match:ready`: `{ matchId }`
 - `typing:update`: `{ matchId, typed, clientSentAt }`
+- `rematch:request`: `{ matchId }`
+- `rematch:accepted`: `{ matchId }`
+- `rematch:decline`: `{ matchId }`
 - `match:leave`
 
 Server emits:
@@ -62,12 +66,16 @@ Server emits:
 - `match:started`
 - `self:update`
 - `opponent:update`
-- `match:ended`
+- `match:ended`: also carries `rematchAvailable`, true when both sockets are still known to the server
+- `rematch:requested`: `{ matchId, requester, timeoutMs }`
+- `rematch:start`: `{ previousMatchId, matchId, roomCode }`
+- `rematch:declined`: `{ matchId, reason, message }`, reason is `declined`, `timeout`, or `opponent_left`
 - `match:error`
 
 ## Scaling Notes
 
 - Match state is stored in Maps for O(1) lookup by socket ID and match ID.
+- Pending rematch requests are likewise in-memory and keyed by the finished match ID, so they are lost on socket-server restart and do not survive a multi-instance deployment. Move them to shared storage alongside match state if you scale horizontally.
 - Client sends full typed state but throttles updates; server broadcasts opponent stats at roughly 80 ms intervals.
 - `perMessageDeflate` is disabled to reduce CPU pressure under many small typing events.
 - For 1000+ concurrent matches across multiple Socket.IO instances, add a Redis adapter and move queues/active match state into Redis or another low-latency shared store.

@@ -55,6 +55,9 @@ Client to server:
 - `room:join`
 - `match:ready`
 - `typing:update`
+- `rematch:request`: `{ matchId }`
+- `rematch:accepted`: `{ matchId }`
+- `rematch:decline`: `{ matchId }`
 - `match:leave`
 
 Server to client:
@@ -68,7 +71,14 @@ Server to client:
 - `match:started`
 - `opponent:update`
 - `match:ended`
+- `rematch:requested`
+- `rematch:start`
+- `rematch:declined`
 - `match:error`
+
+## Rematch
+
+After a match ends, either player can offer a rematch from the results panel while the opponent's socket is still connected. The server tracks the pending request against the finished match, notifies the opponent with `rematch:requested`, and starts a new match in the same room via the normal match-creation path once `rematch:accepted` arrives. Requests expire after 15 seconds or if either player disconnects, in which case `rematch:declined` tells the other player and the results panel returns with the button re-enabled.
 
 ## Anti-Cheat Notes
 
